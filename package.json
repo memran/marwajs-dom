@@ -1,0 +1,66 @@
+{
+  "name": "@marwajs/dom",
+  "version": "0.1.0",
+  "description": "Fluent, single-word, chainable DOM utilities + fx/store/net add-ons.",
+  "keywords": [
+    "dom",
+    "fluent",
+    "utility",
+    "typescript",
+    "esm",
+    "micro"
+  ],
+  "license": "MIT",
+  "author": "Mohammad Emran <memran.dhk@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/memran/marwajs-dom"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./fx": {
+      "types": "./dist/fx.d.ts",
+      "import": "./dist/fx.js"
+    },
+    "./store": {
+      "types": "./dist/store.d.ts",
+      "import": "./dist/store.js"
+    },
+    "./net": {
+      "types": "./dist/net.d.ts",
+      "import": "./dist/net.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "dev": "tsc -w -p tsconfig.json",
+    "prepare": "npm run build",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "format": "prettier -w \"src/**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.7.5",
+    "rimraf": "^6.0.1",
+    "eslint": "^9.10.0",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
