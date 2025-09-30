@@ -7,7 +7,10 @@
 //   const { data } = await api.get("/users", { q: "john" }).json();
 //   const r = await api.post("/items", { name: "A" }).json();
 
-export type Query = Record<string, string | number | boolean | null | undefined>;
+export type Query = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
 
 export type NetInit = {
   base?: string;
@@ -30,7 +33,9 @@ function qs(obj?: Query): string {
   if (!obj) return "";
   const p = Object.entries(obj)
     .filter(([, v]) => v !== undefined && v !== null)
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+    .map(
+      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`
+    )
     .join("&");
   return p ? `?${p}` : "";
 }
@@ -43,11 +48,26 @@ function join(base: string | undefined, path: string): string {
 
 class Reply {
   constructor(readonly res: Response) {}
-  ok() { if (!this.res.ok) throw new Error(`${this.res.status} ${this.res.statusText}`); return this; }
-  async json<T = unknown>() { return { data: (await this.res.json()) as T, res: this.res }; }
-  async text() { return { data: await this.res.text(), res: this.res }; }
-  async blob() { return { data: await this.res.blob(), res: this.res }; }
-  async bytes() { return { data: new Uint8Array(await this.res.arrayBuffer()), res: this.res }; }
+  ok() {
+    if (!this.res.ok)
+      throw new Error(`${this.res.status} ${this.res.statusText}`);
+    return this;
+  }
+  async json<T = unknown>() {
+    return { data: (await this.res.json()) as T, res: this.res };
+  }
+  async text() {
+    return { data: await this.res.text(), res: this.res };
+  }
+  async blob() {
+    return { data: await this.res.blob(), res: this.res };
+  }
+  async bytes() {
+    return {
+      data: new Uint8Array(await this.res.arrayBuffer()),
+      res: this.res,
+    };
+  }
 }
 
 export interface Client {
@@ -55,7 +75,11 @@ export interface Client {
   post(path: string, body?: unknown, init?: RequestInit): Promise<Reply>;
   put(path: string, body?: unknown, init?: RequestInit): Promise<Reply>;
   patch(path: string, body?: unknown, init?: RequestInit): Promise<Reply>;
-  del(path: string, queryOrBody?: Query | unknown, init?: RequestInit): Promise<Reply>;
+  del(
+    path: string,
+    queryOrBody?: Query | unknown,
+    init?: RequestInit
+  ): Promise<Reply>;
   head(path: string, query?: Query, init?: RequestInit): Promise<Reply>;
 
   use(fn: Interceptor): this;
@@ -63,13 +87,13 @@ export interface Client {
   trap(fn: Errorceptor): this;
 
   // utilities
-  abort(): void;          // abort all in-flight
+  abort(): void; // abort all in-flight
   header(name: string, value: string): this; // mutate default headers
   base(url: string): this; // set base
   timeout(ms: number): this; // set default timeout
 }
 
-export function net(base?: string, init: Omit<NetInit, "base"> = {}): Client {
+export function net(base?: string, init: NetInit = {}): Client {
   let _base = base ?? init.base ?? "";
   let _headers: HeadersInit = init.headers ?? {};
   let _query: Query | undefined = init.query;
@@ -79,17 +103,32 @@ export function net(base?: string, init: Omit<NetInit, "base"> = {}): Client {
   const _after: Afterceptor[] = [];
   const _trap: Errorceptor[] = [];
 
-  function compose(path: string, method: string, body?: unknown, extra?: RequestInit, query?: Query): Req {
+  function compose(
+    path: string,
+    method: string,
+    body?: unknown,
+    extra?: RequestInit,
+    query?: Query
+  ): Req {
     const controller = new AbortController();
     const mergedQuery = { ..._query, ...query };
     const url = join(_base, path) + qs(mergedQuery);
-    const isJSON = body != null && typeof body !== "string" && !(body instanceof FormData) && !(body instanceof Blob);
+    const isJSON =
+      body != null &&
+      typeof body !== "string" &&
+      !(body instanceof FormData) &&
+      !(body instanceof Blob);
     const headers = new Headers(_headers);
     if (isJSON) headers.set("Content-Type", "application/json");
     const init: RequestInit = {
       method,
       headers,
-      body: body == null ? undefined : isJSON ? JSON.stringify(body) : (body as any),
+      body:
+        body == null
+          ? undefined
+          : isJSON
+            ? JSON.stringify(body)
+            : (body as any),
       signal: controller.signal,
       ...extra,
     };
@@ -119,27 +158,63 @@ export function net(base?: string, init: Omit<NetInit, "base"> = {}): Client {
   }
 
   const client: Client = {
-    get: (path, query, extra) => run(compose(path, "GET", undefined, extra, query)),
-    head: (path, query, extra) => run(compose(path, "HEAD", undefined, extra, query)),
+    get: (path, query, extra) =>
+      run(compose(path, "GET", undefined, extra, query)),
+    head: (path, query, extra) =>
+      run(compose(path, "HEAD", undefined, extra, query)),
     post: (path, body, extra) => run(compose(path, "POST", body, extra)),
     put: (path, body, extra) => run(compose(path, "PUT", body, extra)),
     patch: (path, body, extra) => run(compose(path, "PATCH", body, extra)),
     del: (path, queryOrBody, extra) => {
-      if (queryOrBody && typeof queryOrBody === "object" && !(queryOrBody as any) instanceof Blob && !(queryOrBody as any) instanceof FormData) {
+      if (
+        queryOrBody &&
+        typeof queryOrBody === "object" &&
+        !(queryOrBody instanceof Blob) &&
+        !(queryOrBody instanceof FormData)
+      ) {
         // prefer body for DELETE; but allow query via 'init'
         return run(compose(path, "DELETE", queryOrBody, extra));
       }
-      return run(compose(path, "DELETE", undefined, extra, queryOrBody as Query | undefined));
+      return run(
+        compose(
+          path,
+          "DELETE",
+          undefined,
+          extra,
+          queryOrBody as Query | undefined
+        )
+      );
     },
 
-    use(fn: Interceptor) { _use.push(fn); return this; },
-    after(fn: Afterceptor) { _after.push(fn); return this; },
-    trap(fn: Errorceptor) { _trap.push(fn); return this; },
+    use(fn: Interceptor) {
+      _use.push(fn);
+      return this;
+    },
+    after(fn: Afterceptor) {
+      _after.push(fn);
+      return this;
+    },
+    trap(fn: Errorceptor) {
+      _trap.push(fn);
+      return this;
+    },
 
-    abort() { _pending.forEach(c => c.abort()); _pending.clear(); },
-    header(name: string, value: string) { ( _headers as any )[name] = value; return this; },
-    base(url: string) { _base = url; return this; },
-    timeout(ms: number) { _timeout = ms; return this; },
+    abort() {
+      _pending.forEach((c) => c.abort());
+      _pending.clear();
+    },
+    header(name: string, value: string) {
+      (_headers as any)[name] = value;
+      return this;
+    },
+    base(url: string) {
+      _base = url;
+      return this;
+    },
+    timeout(ms: number) {
+      _timeout = ms;
+      return this;
+    },
   };
 
   return client;

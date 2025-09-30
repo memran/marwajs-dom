@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>@marwajs/dom demo</title>
+    <style>
+      .card {
+        border: 1px solid #ddd;
+        margin: 12px;
+      }
+      .active {
+        outline: 2px solid #09f;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <button class="btn">Toggle</button>
+
+    <script type="module">
+      import dom, { make } from "../dist/index.js";
+
+      const $app = dom("#app");
+      const card = make('<div class="card" id="myid"><h3></h3><p></p></div>');
+      card.find("h3").text("Hello");
+      card.find("p").text("Fluent MarwaJS DOM, less code.");
+      $app.add(card);
+
+      card.on("click", () => card.class("?active"));
+      dom(document).onD("click", ".btn", (_e, btn) =>
+        dom(myid).class("?active")
+      );
+    </script>
+  </body>
+</html>
