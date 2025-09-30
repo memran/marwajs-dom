@@ -1,0 +1,30 @@
+# Ignore source and config files when publishing
+src/
+tsconfig.json
+tsconfig.*.json
+*.tsbuildinfo
+
+# Ignore tests
+__tests__/
+tests/
+coverage/
+jest.config.js
+vitest.config.js
+
+# Ignore dev tooling
+node_modules/
+.npmignore
+.gitignore
+.eslintrc.js
+.prettierrc
+.prettierignore
+.rimrafignore
+
+# Ignore build + editor files
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# GitHub/CI files
+.github/
