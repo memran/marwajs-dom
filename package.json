@@ -1,5 +1,5 @@
 {
-  "name": "@marwajs/dom",
+  "name": "marwajs-dom",
   "version": "0.1.0",
   "description": "Fluent, single-word, chainable DOM utilities + fx/store/net add-ons.",
   "keywords": [

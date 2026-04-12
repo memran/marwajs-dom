@@ -1,7 +1,7 @@
-# @marwajs/dom
+# marwajs-dom
 
-[![npm version](https://img.shields.io/npm/v/@marwajs/dom?color=blue&logo=npm)](https://www.npmjs.com/package/@marwajs/dom)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@marwajs/dom?color=purple)](https://bundlephobia.com/package/@marwajs/dom)
+[![npm version](https://img.shields.io/npm/v/marwajs-dom?color=blue&logo=npm)](https://www.npmjs.com/package/marwajs-dom)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/marwajs-dom?color=purple)](https://bundlephobia.com/package/marwajs-dom)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -14,10 +14,10 @@ ESM-only, TypeScript, zero deps, tree-shake friendly.
 ## Install
 
 ```bash
-npm i @marwajs/dom
+npm i marwajs-dom
 ```
 
-## Core API — `import dom, { make } from "@marwajs/dom"`
+## Core API — `import dom, { make } from "marwajs-dom"`
 
 ### Selection
 
@@ -169,7 +169,7 @@ dom("li").pipe((d) => console.log(d.length));
 
 ## Add-on: `fx` — Micro animations
 
-**Install:** `import { enableFx } from "@marwajs/dom/fx"` — call once before use.
+**Install:** `import { enableFx } from "marwajs-dom/fx"` — call once before use.
 
 ```js
 enableFx(); // patches Dom.prototype — call once
@@ -209,7 +209,7 @@ ease.inout; // ease-in-out
 
 ## Add-on: `store` — local/session storage
 
-**Install:** `import { store } from "@marwajs/dom/store"`
+**Install:** `import { store } from "marwajs-dom/store"`
 
 ```js
 const s = store(); // localStorage, no namespace
@@ -244,7 +244,7 @@ All methods return `this` for chaining.
 
 ## Add-on: `net` — fetch wrapper
 
-**Install:** `import { net } from "@marwajs/dom/net"`
+**Install:** `import { net } from "marwajs-dom/net"`
 
 ```js
 const api = net("https://api.example.com", { timeout: 8000 })

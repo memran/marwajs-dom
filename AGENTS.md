@@ -1,4 +1,4 @@
-# AGENTS.md — @marwajs/dom
+# AGENTS.md — marwajs-dom
 
 ## Commands
 
