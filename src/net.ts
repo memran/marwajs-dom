@@ -34,15 +34,48 @@ function qs(obj?: Query): string {
   const p = Object.entries(obj)
     .filter(([, v]) => v !== undefined && v !== null)
     .map(
-      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`
+      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
     )
     .join("&");
   return p ? `?${p}` : "";
 }
 
+function isSafeUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+const SAFE_EXTRA_KEYS: (keyof RequestInit)[] = [
+  "body",
+  "cache",
+  "credentials",
+  "keepalive",
+  "referrer",
+  "referrerPolicy",
+  "signal",
+  "window",
+];
+
+function safeExtra(extra: RequestInit | undefined): Partial<RequestInit> {
+  if (!extra) return {};
+  const out: Partial<RequestInit> = {};
+  for (const k of SAFE_EXTRA_KEYS) {
+    if (k in extra) (out as any)[k] = extra[k];
+  }
+  return out;
+}
+
 function join(base: string | undefined, path: string): string {
   if (!base) return path;
-  if (path.startsWith("http")) return path;
+  if (/^https?:\/\//i.test(path)) {
+    throw new Error(
+      "net: absolute path URLs are not allowed; use the base URL instead",
+    );
+  }
   return base.replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
 }
 
@@ -78,7 +111,7 @@ export interface Client {
   del(
     path: string,
     queryOrBody?: Query | unknown,
-    init?: RequestInit
+    init?: RequestInit,
   ): Promise<Reply>;
   head(path: string, query?: Query, init?: RequestInit): Promise<Reply>;
 
@@ -94,8 +127,12 @@ export interface Client {
 }
 
 export function net(base?: string, init: NetInit = {}): Client {
+  if (base && !isSafeUrl(base))
+    throw new Error("net: base must be a safe http(s) URL");
   let _base = base ?? init.base ?? "";
-  let _headers: HeadersInit = init.headers ?? {};
+  if (_base && !isSafeUrl(_base))
+    throw new Error("net: base must be a safe http(s) URL");
+  let _headers: Headers = new Headers(init.headers ?? {});
   let _query: Query | undefined = init.query;
   let _timeout = init.timeout ?? 15000;
   const _pending = new Set<AbortController>();
@@ -108,7 +145,7 @@ export function net(base?: string, init: NetInit = {}): Client {
     method: string,
     body?: unknown,
     extra?: RequestInit,
-    query?: Query
+    query?: Query,
   ): Req {
     const controller = new AbortController();
     const mergedQuery = { ..._query, ...query };
@@ -130,7 +167,7 @@ export function net(base?: string, init: NetInit = {}): Client {
             ? JSON.stringify(body)
             : (body as any),
       signal: controller.signal,
-      ...extra,
+      ...safeExtra(extra),
     };
     return { url, init, controller };
   }
@@ -181,8 +218,8 @@ export function net(base?: string, init: NetInit = {}): Client {
           "DELETE",
           undefined,
           extra,
-          queryOrBody as Query | undefined
-        )
+          queryOrBody as Query | undefined,
+        ),
       );
     },
 
@@ -204,7 +241,7 @@ export function net(base?: string, init: NetInit = {}): Client {
       _pending.clear();
     },
     header(name: string, value: string) {
-      (_headers as any)[name] = value;
+      _headers.set(name, value);
       return this;
     },
     base(url: string) {

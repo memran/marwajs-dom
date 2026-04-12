@@ -20,7 +20,11 @@ function raw(scope: Scope) {
 }
 
 function safe<T>(fn: () => T, fallback: T): T {
-  try { return fn(); } catch { return fallback; }
+  try {
+    return fn();
+  } catch {
+    return fallback;
+  }
 }
 
 /** Create a namespaced storage */
@@ -33,11 +37,29 @@ export function store(scope: Scope = "local", ns = ""): Store {
       return safe(() => {
         const v = R.getItem(keyOf(key));
         if (v == null) return fallback ?? null;
-        try { return JSON.parse(v) as T; } catch { return (v as unknown) as T; }
+        if (typeof v === "string" && !v.startsWith("{")) {
+          try {
+            return JSON.parse(v) as T;
+          } catch {
+            return v as unknown as T;
+          }
+        }
+        try {
+          return JSON.parse(v) as T;
+        } catch {
+          return v as unknown as T;
+        }
       }, fallback ?? null);
     },
     set<T = unknown>(key: string, value: T) {
-      safe(() => R.setItem(keyOf(key), typeof value === "string" ? value : JSON.stringify(value)), undefined);
+      safe(
+        () =>
+          R.setItem(
+            keyOf(key),
+            typeof value === "string" ? value : JSON.stringify(value),
+          ),
+        undefined,
+      );
       return this;
     },
     rm(key: string) {
@@ -48,28 +70,39 @@ export function store(scope: Scope = "local", ns = ""): Store {
       return safe(() => R.getItem(keyOf(key)) != null, false);
     },
     all<T = unknown>() {
-      return safe(() => {
-        const out: Record<string, T> = {};
-        for (let i = 0; i < R.length; i++) {
-          const k = R.key(i)!;
-          if (ns && !k.startsWith(ns)) continue;
-          const short = ns ? k.slice(ns.length) : k;
-          const v = R.getItem(k);
-          try { (out as any)[short] = v != null ? JSON.parse(v) : null; }
-          catch { (out as any)[short] = v as any; }
-        }
-        return out;
-      }, {} as Record<string, T>);
+      return safe(
+        () => {
+          const out: Record<string, T> = {};
+          for (let i = 0; i < R.length; i++) {
+            const k = R.key(i)!;
+            if (ns && !k.startsWith(ns)) continue;
+            const short = ns ? k.slice(ns.length) : k;
+            const v = R.getItem(k);
+            if (v == null) {
+              (out as any)[short] = null;
+              continue;
+            }
+            try {
+              (out as any)[short] = JSON.parse(v);
+            } catch {
+              (out as any)[short] = v as any;
+            }
+          }
+          return out;
+        },
+        {} as Record<string, T>,
+      );
     },
     clear() {
-      if (!ns) { safe(() => R.clear(), undefined); }
-      else {
+      if (!ns) {
+        safe(() => R.clear(), undefined);
+      } else {
         const keys: string[] = [];
         for (let i = 0; i < R.length; i++) {
           const k = R.key(i)!;
           if (k.startsWith(ns)) keys.push(k);
         }
-        keys.forEach(k => safe(() => R.removeItem(k), undefined));
+        keys.forEach((k) => safe(() => R.removeItem(k), undefined));
       }
       return this;
     },

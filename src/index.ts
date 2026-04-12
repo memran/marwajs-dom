@@ -38,6 +38,12 @@ function kebab(name: string) {
   return name.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
 }
 
+function sanitizeHTML(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/\bon\w+\s*=/gi, "data-removed-event=");
+}
+
 function setStyle(el: Element, k: string, v: StyleValue) {
   const style = (el as HTMLElement).style;
   if (!style) return;
@@ -100,7 +106,7 @@ export class Dom {
   static make(htmlOrTag: string, attrs?: Record<string, any>): Dom {
     if (htmlOrTag.startsWith("<")) {
       const tpl = document.createElement("template");
-      tpl.innerHTML = htmlOrTag.trim();
+      tpl.innerHTML = sanitizeHTML(htmlOrTag.trim());
       return new Dom(Array.from(tpl.content.children) as Element[]);
     }
     const el = document.createElement(htmlOrTag);
@@ -148,7 +154,9 @@ export class Dom {
       const parent = el.parentElement;
       if (!parent) return;
       out.push(
-        ...Array.from(parent.children).filter((x) => x !== el && x.matches(sel))
+        ...Array.from(parent.children).filter(
+          (x) => x !== el && x.matches(sel),
+        ),
       );
     });
     return new Dom(out);
@@ -182,7 +190,7 @@ export class Dom {
       const el = this.first as Element | undefined;
       return el ? (el.innerHTML ?? "") : "";
     }
-    return this.each((el) => (el.innerHTML = v ?? ""));
+    return this.each((el) => (el.innerHTML = sanitizeHTML(v ?? "")));
   }
 
   val(v?: Maybe<string>): this | string | null {
@@ -197,15 +205,14 @@ export class Dom {
   }
 
   // ===== Attrs & Data =====
-  attr(name: string, value?: Maybe<string>): this;
+  attr(name: string, value?: Maybe<string>): this | string | null;
   attr(map: Record<string, Maybe<string>>): this;
-  attr(nameOrMap: any, value?: Maybe<string>): this {
+  attr(nameOrMap: any, value?: Maybe<string>): this | string | null {
     if (typeof nameOrMap === "string") {
       const k = nameOrMap;
       if (value === undefined) {
-        // getter (first only)
-        // NOTE: explicit getter is intentionally omitted to keep API single-word & chain-first
-        return this;
+        const el = this.first as Element | undefined;
+        return el ? el.getAttribute(k) : null;
       }
       return this.each((el) => {
         if (value == null) el.removeAttribute(k);
@@ -241,10 +248,15 @@ export class Dom {
   // ===== Class (single-word, multi-mode) =====
   /** class("active") → add; class("!active") → remove; class("?active") → toggle */
   class(token: string): this {
+    if (
+      !token ||
+      (!token.startsWith("!") && !token.startsWith("?") && token.trim() === "")
+    )
+      return this;
     const mode =
       token[0] === "!" ? "remove" : token[0] === "?" ? "toggle" : "add";
     const name = token[0] === "!" || token[0] === "?" ? token.slice(1) : token;
-    return this.each((el) => el.classList[mode](name));
+    return this.each((el) => el.classList[mode](name.trim()));
   }
 
   // ===== Style =====
@@ -273,7 +285,7 @@ export class Dom {
   flip(show?: boolean): this {
     return show === undefined
       ? this.each(
-          (el) => ((el as HTMLElement).hidden = !(el as HTMLElement).hidden)
+          (el) => ((el as HTMLElement).hidden = !(el as HTMLElement).hidden),
         )
       : show
         ? this.show()
@@ -303,7 +315,7 @@ export class Dom {
           : new Dom(child as any).list;
 
     return this.each((el) =>
-      nodes.forEach((n) => el.insertBefore(n as any, el.firstChild))
+      nodes.forEach((n) => el.insertBefore(n as any, el.firstChild)),
     );
   }
 
@@ -315,7 +327,7 @@ export class Dom {
           ? [node as any]
           : new Dom(node as any).list;
     return this.each((el) =>
-      nodes.forEach((n) => el.parentNode?.insertBefore(n as any, el))
+      nodes.forEach((n) => el.parentNode?.insertBefore(n as any, el)),
     );
   }
 
@@ -328,14 +340,15 @@ export class Dom {
           : new Dom(node as any).list;
     return this.each((el) =>
       nodes.forEach((n) =>
-        el.parentNode?.insertBefore(n as any, el.nextSibling)
-      )
+        el.parentNode?.insertBefore(n as any, el.nextSibling),
+      ),
     );
   }
 
-  wrap(htmlOrTag: string): this {
+  wrap(tagName: string): this {
+    if (!tagName || tagName.includes("<")) return this;
     return this.each((el) => {
-      const w = Dom.make(htmlOrTag).first as Element;
+      const w = Dom.make(tagName).first as Element;
       if (!w || !el.parentNode) return;
       el.parentNode.insertBefore(w, el);
       w.appendChild(el);
@@ -388,7 +401,7 @@ export class Dom {
   on<K extends keyof EventMap>(
     type: K,
     handler: (ev: EventMap[K]) => void,
-    opts?: OnOptions
+    opts?: OnOptions,
   ): this {
     this.list.forEach((t) => {
       if (!t || (t as any).addEventListener == null) return;
@@ -400,7 +413,7 @@ export class Dom {
 
   off<K extends keyof EventMap>(
     type?: K,
-    handler?: (ev: EventMap[K]) => void
+    handler?: (ev: EventMap[K]) => void,
   ): this {
     this.list.forEach((t) => {
       const target = t as any;
@@ -411,7 +424,7 @@ export class Dom {
         const m = REG.get(target);
         if (!m) return;
         m.forEach((set, typ) =>
-          set.forEach((h) => target.removeEventListener(typ, h as any))
+          set.forEach((h) => target.removeEventListener(typ, h as any)),
         );
         REG.delete(target);
         return;
@@ -424,7 +437,7 @@ export class Dom {
       } else {
         const set = regGetKey(target, type as string);
         set.forEach((h) =>
-          target.removeEventListener(type as string, h as any)
+          target.removeEventListener(type as string, h as any),
         );
         set.clear();
       }
@@ -435,7 +448,7 @@ export class Dom {
   once<K extends keyof EventMap>(
     type: K,
     handler: (ev: EventMap[K]) => void,
-    opts?: OnOptions
+    opts?: OnOptions,
   ): this {
     const wrap = (ev: Event) => {
       handler(ev as any);
@@ -449,7 +462,7 @@ export class Dom {
     type: K,
     sel: string,
     handler: (ev: EventMap[K], match: Element) => void,
-    opts?: OnOptions
+    opts?: OnOptions,
   ): this {
     return this.on(
       type,
@@ -463,7 +476,7 @@ export class Dom {
         if (match && (root as Element).contains(match))
           handler(ev as any, match);
       },
-      opts
+      opts,
     );
   }
 

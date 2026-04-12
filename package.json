@@ -51,14 +51,20 @@
     "dev": "tsc -w -p tsconfig.json",
     "prepare": "npm run build",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "format": "prettier -w \"src/**/*.{ts,tsx,md}\""
+    "format": "prettier -w \"src/**/*.{ts,tsx,md}\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "@types/node": "^22.7.5",
-    "rimraf": "^6.0.1",
+    "@types/node": "^22.19.17",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
     "eslint": "^9.10.0",
-    "prettier": "^3.3.3"
+    "happy-dom": "^20.8.9",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.4"
   },
   "engines": {
     "node": ">=18"

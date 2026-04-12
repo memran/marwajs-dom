@@ -6,8 +6,6 @@
 //   enableFx();  // patches Dom.prototype
 //   dom("#box").fade(300).move(20, 0, 300).scale(1.2, 300);
 
-import type { Dom as DomType } from "./index";
-
 type Easing = (t: number) => number;
 
 const ease = {
@@ -48,7 +46,12 @@ function readStyle(el: HTMLElement, k: string): number {
   if (k === "y") return 0;
   if (k === "scale") return 1;
   if (k === "rotate") return 0;
-  const raw = cs.getPropertyValue(k.startsWith("--") ? k : k.replace(/[A-Z]/g, m => "-" + m.toLowerCase())) || "0";
+  const raw =
+    cs.getPropertyValue(
+      k.startsWith("--")
+        ? k
+        : k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase()),
+    ) || "0";
   const num = parseFloat(raw);
   return isNaN(num) ? 0 : num;
 }
@@ -59,21 +62,24 @@ function write(el: HTMLElement, k: string, v: number) {
     return;
   }
   if (k === "x" || k === "y" || k === "scale" || k === "rotate") {
-    // transform composer
     const st = FX.get(el) as FXState;
     const f = st?.to || {};
-    const x = k === "x" ? v : f.x ?? st?.from?.x ?? 0;
-    const y = k === "y" ? v : f.y ?? st?.from?.y ?? 0;
-    const s = k === "scale" ? v : f.scale ?? st?.from?.scale ?? 1;
-    const r = k === "rotate" ? v : f.rotate ?? st?.from?.rotate ?? 0;
-    (el.style as any).transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+    const x = k === "x" ? v : (f.x ?? st?.from?.x ?? 0);
+    const y = k === "y" ? v : (f.y ?? st?.from?.y ?? 0);
+    const s = k === "scale" ? v : (f.scale ?? st?.from?.scale ?? 1);
+    const r = k === "rotate" ? v : (f.rotate ?? st?.from?.rotate ?? 0);
+    const existing = el.style.transform || "";
+    const preserved = existing
+      .replace(/translate\([^)]*\)\s*scale\([^)]*\)\s*rotate\([^)]*\)/g, "")
+      .trim();
+    (el.style as any).transform = preserved
+      ? `${preserved} translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`
+      : `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
     return;
   }
-  // css vars or numeric styles (assume px)
   if (k.startsWith("--")) el.style.setProperty(k, String(v));
   else (el.style as any)[k] = `${v}px`;
 }
-
 function cancel(el: Element) {
   const st = FX.get(el);
   if (!st) return;
@@ -87,7 +93,7 @@ function tweenElement(
   to: Tweenable,
   ms: number,
   easing: Easing,
-  onDone?: () => void
+  onDone?: () => void,
 ) {
   cancel(el);
   const from: Record<string, number> = {};
@@ -128,30 +134,43 @@ function tweenElement(
 }
 
 // Public helpers (operate on first element in the Dom set)
-function fxTo(d: any, to: Tweenable, ms = 300, easing: Easing = ease.inout): any {
+function fxTo(
+  d: any,
+  to: Tweenable,
+  ms = 300,
+  easing: Easing = ease.inout,
+): any {
   const el = d.first as HTMLElement | undefined;
   if (el) tweenElement(el, to, ms, easing);
   return d;
 }
-function fxFade(d: any, ms = 300, show?: boolean, easing: Easing = ease.inout): any {
+function fxFade(
+  d: any,
+  ms = 300,
+  show?: boolean,
+  easing: Easing = ease.inout,
+): any {
   const el = d.first as HTMLElement | undefined;
   if (!el) return d;
-  const target = show === undefined ? (parseFloat(getComputedStyle(el).opacity || "1") < 0.5) : show;
+  const target =
+    show === undefined
+      ? parseFloat(getComputedStyle(el).opacity || "1") < 0.5
+      : show;
   el.style.willChange = "opacity";
   if (target && el.style.display === "none") el.style.display = "";
-  tweenElement(
-    el,
-    { opacity: target ? 1 : 0 },
-    ms,
-    easing,
-    () => {
-      el.style.willChange = "";
-      if (!target) el.style.display = "none";
-    }
-  );
+  tweenElement(el, { opacity: target ? 1 : 0 }, ms, easing, () => {
+    el.style.willChange = "";
+    if (!target) el.style.display = "none";
+  });
   return d;
 }
-function fxMove(d: any, x = 0, y = 0, ms = 300, easing: Easing = ease.inout): any {
+function fxMove(
+  d: any,
+  x = 0,
+  y = 0,
+  ms = 300,
+  easing: Easing = ease.inout,
+): any {
   const el = d.first as HTMLElement | undefined;
   if (el) tweenElement(el, { x, y }, ms, easing);
   return d;
@@ -172,19 +191,46 @@ function fxStop(d: any): any {
   return d;
 }
 
-/** Enable patching: adds single-word fx methods onto Dom.prototype */
-export function enableFx() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { Dom } = require("./index") as { Dom: typeof DomType };
-  const P = (Dom as any).prototype;
-  if (P.__fxPatched) return;
-  P.to = function (to: Tweenable, ms?: number, easing?: Easing) { return fxTo(this, to, ms, easing); };
-  P.fade = function (ms?: number, show?: boolean, easing?: Easing) { return fxFade(this, ms, show, easing); };
-  P.move = function (x?: number, y?: number, ms?: number, easing?: Easing) { return fxMove(this, x, y, ms, easing); };
-  P.scale = function (s?: number, ms?: number, easing?: Easing) { return fxScale(this, s, ms, easing); };
-  P.rotate = function (deg?: number, ms?: number, easing?: Easing) { return fxRotate(this, deg, ms, easing); };
-  P.stop = function () { return fxStop(this); };
-  P.__fxPatched = true;
+let _patched = false;
+let _domProto: any = null;
+
+async function getDomPrototype(): Promise<any> {
+  if (_domProto) return _domProto;
+  const { Dom } = await import("./index.js");
+  _domProto = Dom.prototype;
+  return _domProto;
+}
+
+let _patchPromise: Promise<void> | null = null;
+
+export function enableFx(): Promise<void> | void {
+  if (_patched) return;
+  if (!_patchPromise) {
+    _patchPromise = getDomPrototype().then((P) => {
+      if (P.__fxPatched) return;
+      P.to = function (to: Tweenable, ms?: number, easing?: Easing) {
+        return fxTo(this, to, ms, easing);
+      };
+      P.fade = function (ms?: number, show?: boolean, easing?: Easing) {
+        return fxFade(this, ms, show, easing);
+      };
+      P.move = function (x?: number, y?: number, ms?: number, easing?: Easing) {
+        return fxMove(this, x, y, ms, easing);
+      };
+      P.scale = function (s?: number, ms?: number, easing?: Easing) {
+        return fxScale(this, s, ms, easing);
+      };
+      P.rotate = function (deg?: number, ms?: number, easing?: Easing) {
+        return fxRotate(this, deg, ms, easing);
+      };
+      P.stop = function () {
+        return fxStop(this);
+      };
+      P.__fxPatched = true;
+      _patched = true;
+    });
+  }
+  return _patchPromise;
 }
 
 // Ambient typing for consumers (optional)
@@ -192,9 +238,6 @@ declare global {
   interface HTMLElement {
     // no-op, reserved
   }
-  // Augment Dom type when enableFx() is used
-  // (kept here for editor intellisense; actual patch via enableFx)
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface DomFX {}
 }
 
