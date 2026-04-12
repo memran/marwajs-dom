@@ -1,7 +1,7 @@
 # marwajs-dom
 
 [![npm version](https://img.shields.io/npm/v/marwajs-dom?color=blue&logo=npm)](https://www.npmjs.com/package/marwajs-dom)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/marwajs-dom?color=purple)](https://bundlephobia.com/package/marwajs-dom)
+[![npm downloads](https://img.shields.io/npm/dm/marwajs-dom?color=green&logo=npm)](https://www.npmjs.com/package/marwajs-dom)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
