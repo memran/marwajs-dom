@@ -1,35 +1,1231 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>@marwajs/dom demo</title>
+    <title>marwajs-dom — Interactive Demo</title>
     <style>
-      .card {
-        border: 1px solid #ddd;
-        margin: 12px;
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
       }
-      .active {
-        outline: 2px solid #09f;
+
+      :root {
+        --bg: #0f0f1a;
+        --surface: #1a1a2e;
+        --surface2: #16213e;
+        --border: #2a2a4a;
+        --accent: #6c5ce7;
+        --accent2: #a29bfe;
+        --green: #00cec9;
+        --red: #ff6b6b;
+        --yellow: #feca57;
+        --text: #d1d1e9;
+        --muted: #6c6c8a;
+        --code-bg: #0d0d1a;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .badge {
+        font-size: 0.75rem;
+        background: var(--accent);
+        color: #fff;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+        padding: 1.5rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        margin: 0 0 1rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+      }
+
+      button,
+      .btn {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-family: inherit;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+        min-width: 44px;
+      }
+
+      button:hover,
+      .btn:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      button:active {
+        transform: scale(0.97);
+      }
+
+      input,
+      select {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.35rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-family: inherit;
+        outline: none;
+        width: 100%;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+      }
+
+      /* ---- Live playground ---- */
+      #playground {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        min-height: 120px;
+        max-height: 300px;
+        overflow: auto;
+        padding: 1rem;
+        font-size: 0.85rem;
+        position: relative;
+      }
+
+      #playground .el {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin: 4px;
+        font-size: 0.8rem;
+        cursor: default;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      #playground .el.highlight {
+        background: var(--accent);
+        border-color: var(--accent2);
+        color: #fff;
+        transform: scale(1.05);
+      }
+
+      #playground .el.hidden-el {
+        display: none;
+      }
+
+      #log {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-family: "Fira Code", "Cascadia Code", monospace;
+        font-size: 0.75rem;
+        color: var(--green);
+        max-height: 180px;
+        overflow: auto;
+        margin-top: 1rem;
+      }
+
+      #log .entry {
+        padding: 0.15rem 0;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      #log .entry:last-child {
+        border-bottom: none;
+      }
+      #log .ts {
+        color: var(--muted);
+        min-width: 30px;
+      }
+      #log .msg {
+        color: var(--text);
+      }
+      #log .ok {
+        color: var(--green);
+      }
+      #log .err {
+        color: var(--red);
+      }
+      #log .warn {
+        color: var(--yellow);
+      }
+
+      /* ---- Store & Net panels ---- */
+      .kv {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.3rem 0.75rem;
+        font-size: 0.82rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .kv .key {
+        color: var(--accent2);
+        font-family: monospace;
+      }
+      .kv .val {
+        color: var(--text);
+        font-family: monospace;
+        word-break: break-all;
+      }
+
+      .panel-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem;
+      }
+
+      /* ---- Net output ---- */
+      #net-output {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-family: monospace;
+        font-size: 0.78rem;
+        min-height: 80px;
+        white-space: pre-wrap;
+        color: var(--text);
+      }
+
+      #net-output .status-2xx {
+        color: var(--green);
+      }
+      #net-output .status-4xx {
+        color: var(--yellow);
+      }
+      #net-output .status-err {
+        color: var(--red);
+      }
+
+      /* ---- fx demo ---- */
+      #box {
+        width: 60px;
+        height: 60px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: #fff;
+        cursor: pointer;
+        position: relative;
+      }
+
+      #box:hover {
+        opacity: 0.85;
+      }
+
+      /* ---- Scroll bar ---- */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--surface);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--muted);
       }
     </style>
   </head>
+
   <body>
-    <div id="app"></div>
-    <button class="btn">Toggle</button>
+    <header>
+      <h1>marwajs-dom</h1>
+      <span class="badge">Interactive Demo</span>
+    </header>
+
+    <main>
+      <!-- ====== LEFT: Playgrounds ====== -->
+      <div>
+        <!-- DOM Selection -->
+        <section>
+          <h2>Selection &amp; make()</h2>
+          <div class="demo-grid">
+            <button id="sel-id">#app</button>
+            <button id="sel-class">.item</button>
+            <button id="sel-tag">li</button>
+            <button id="sel-all-items">All items</button>
+            <button id="sel-first">First item</button>
+            <button id="make-div">make("div")</button>
+            <button id="make-p">make("p","hi")</button>
+            <button id="make-ul">make ul+lis</button>
+            <button id="clear-play">clear()</button>
+          </div>
+        </section>
+
+        <!-- Content -->
+        <section>
+          <h2>Content — text() / html() / val()</h2>
+          <div class="panel-row">
+            <button id="btn-text">text("Hello")</button>
+            <button id="btn-text-read">text() read</button>
+            <button id="btn-html">html("&lt;b&gt;Bold&lt;/b&gt;")</button>
+            <button id="btn-html-read">html() read</button>
+            <input id="input-val" placeholder="Type input value…" />
+            <button id="btn-val-set">val(input.value)</button>
+            <button id="btn-val-read">val() read</button>
+          </div>
+        </section>
+
+        <!-- Attributes & Data -->
+        <section>
+          <h2>Attributes &amp; Data — attr() / data()</h2>
+          <div class="panel-row">
+            <button id="btn-attr-set">attr("data-id","42")</button>
+            <button id="btn-attr-read">attr("data-id")</button>
+            <button id="btn-attr-rm">attr("data-id",null)</button>
+            <button id="btn-data-set">data("user","alice")</button>
+            <button id="btn-data-read">data("user")</button>
+            <button id="btn-data-rm">data("user",null)</button>
+            <button id="btn-attr-multiple">attr({title,rel})</button>
+          </div>
+        </section>
+
+        <!-- Class -->
+        <section>
+          <h2>Class — class()</h2>
+          <div class="demo-grid">
+            <button id="btn-add">class("active")</button>
+            <button id="btn-remove">class("!active")</button>
+            <button id="btn-toggle">class("?active")</button>
+            <button id="btn-empty">class("")</button>
+            <button id="btn-red">class("red")</button>
+            <button id="btn-blue">class("blue")</button>
+          </div>
+        </section>
+
+        <!-- Styles -->
+        <section>
+          <h2>Styles — css() / show() / hide() / flip()</h2>
+          <div class="panel-row">
+            <button id="btn-css-color">css(color,red)</button>
+            <button id="btn-css-bg">css(background,#6c5ce7)</button>
+            <button id="btn-css-multiple">
+              css({fontSize:18,borderRadius:12})
+            </button>
+            <button id="btn-css-read">css(fontSize) read</button>
+            <button id="btn-show">show()</button>
+            <button id="btn-hide">hide()</button>
+            <button id="btn-flip">flip()</button>
+            <button id="btn-css-rm">css(color,null)</button>
+          </div>
+        </section>
+
+        <!-- Tree -->
+        <section>
+          <h2>
+            Tree — add() / pre() / before() / after() / wrap() / rm() / clone()
+          </h2>
+          <div class="panel-row">
+            <button id="btn-add-el">add(make li)</button>
+            <button id="btn-pre-el">pre(make li)</button>
+            <button id="btn-before">before(make span)</button>
+            <button id="btn-after">after(make span)</button>
+            <button id="btn-wrap">wrap("mark")</button>
+            <button id="btn-unwrap">unwrap()</button>
+            <button id="btn-rm-selected">rm selected</button>
+            <button id="btn-clone">clone() sel</button>
+            <button id="btn-empty">empty() app</button>
+          </div>
+        </section>
+
+        <!-- Geometry -->
+        <section>
+          <h2>Geometry — box() / pos()</h2>
+          <div class="panel-row">
+            <button id="btn-box">box() rect</button>
+            <button id="btn-pos-read">pos() read</button>
+            <button id="btn-pos-write">pos(10,10)</button>
+            <button id="btn-pos-move">pos+=20</button>
+          </div>
+        </section>
+
+        <!-- Events -->
+        <section>
+          <h2>Events — on() / off() / once() / onD()</h2>
+          <div class="panel-row">
+            <button id="btn-on">on("click",…)</button>
+            <button id="btn-once">once("click",…)</button>
+            <button id="btn-off">off("click")</button>
+            <button id="btn-fire">fire 5 clicks</button>
+            <span style="font-size: 0.8rem; color: var(--muted)"
+              >Delegated: click any .item below</span
+            >
+          </div>
+        </section>
+
+        <!-- Scroll -->
+        <section>
+          <h2>Scroll — top() / left()</h2>
+          <div class="panel-row">
+            <button id="btn-top-read">top() read</button>
+            <button id="btn-top-set">top(0)</button>
+            <button id="btn-top-mid">top(120)</button>
+            <button id="btn-left-read">left() read</button>
+            <button id="btn-left-set">left(30)</button>
+          </div>
+        </section>
+
+        <!-- Query -->
+        <section>
+          <h2>Query — find() / up() / near()</h2>
+          <div class="panel-row">
+            <button id="btn-find">find(".nested")</button>
+            <button id="btn-up">up(".section")</button>
+            <button id="btn-near">near(".sibling")</button>
+          </div>
+        </section>
+
+        <!-- Live playground -->
+        <section>
+          <h2>Playground &amp; Log</h2>
+          <div id="playground">
+            <div class="el section">
+              .section
+              <div class="el item highlight" data-id="1" data-user="alice">
+                .item #1
+              </div>
+              <div class="el item" data-id="2" data-user="bob">.item #2</div>
+              <div class="el item" data-id="3" data-user="carol">.item #3</div>
+              <div class="el sibling">.sibling A</div>
+              <div class="el sibling nested">.nested</div>
+            </div>
+          </div>
+          <div id="log"></div>
+        </section>
+      </div>
+
+      <!-- ====== RIGHT: Panels ====== -->
+      <div>
+        <!-- fx -->
+        <section>
+          <h2>fx — Animations (enableFx required)</h2>
+          <div id="box" title="Click to animate">BOX</div>
+          <div class="demo-grid" style="margin-top: 0.75rem">
+            <button id="fx-fade">fade(600)</button>
+            <button id="fx-move">move(80,40)</button>
+            <button id="fx-scale">scale(1.5)</button>
+            <button id="fx-rotate">rotate(180)</button>
+            <button id="fx-stop">stop()</button>
+            <button id="fx-chain">chain all</button>
+            <button id="fx-custom">to({x:30,scale:1.2,opacity:0.8})</button>
+          </div>
+        </section>
+
+        <!-- store -->
+        <section>
+          <h2>store — localStorage</h2>
+          <div class="panel-row">
+            <input id="store-key" placeholder="key" style="flex: 1" />
+            <input id="store-val" placeholder="value" style="flex: 1" />
+            <button id="store-set" class="btn">set</button>
+          </div>
+          <div class="panel-row">
+            <button id="store-get" class="btn">get</button>
+            <button id="store-has" class="btn">has</button>
+            <button id="store-rm" class="btn">rm</button>
+            <button id="store-all" class="btn">all()</button>
+            <button id="store-clear" class="btn">clear</button>
+          </div>
+          <div id="store-output"></div>
+        </section>
+
+        <!-- net -->
+        <section>
+          <h2>net — HTTP Client</h2>
+          <div class="panel-row" style="flex-wrap: wrap">
+            <button id="net-get" class="btn">GET /posts</button>
+            <button id="net-get-1" class="btn">GET /posts/1</button>
+            <button id="net-post" class="btn">POST /posts</button>
+            <button id="net-invalid" class="btn">invalid base</button>
+          </div>
+          <div id="net-output">Ready. Click a request button.</div>
+        </section>
+
+        <!-- Map / Each -->
+        <section>
+          <h2>Collection — each() / map() / pipe()</h2>
+          <div class="panel-row">
+            <button id="btn-each-log">each → log texts</button>
+            <button id="btn-map-log">map → log classes</button>
+            <button id="btn-pipe">pipe(→ style all)</button>
+          </div>
+        </section>
+
+        <!-- Misc -->
+        <section>
+          <h2>Misc — clone() / iterator / root()</h2>
+          <div class="panel-row">
+            <button id="btn-clone-log">clone &amp; log</button>
+            <button id="btn-iter-log">for…of items</button>
+            <button id="btn-root-log">root("div") count</button>
+          </div>
+        </section>
+
+        <!-- Counter -->
+        <section>
+          <h2>Event counter (click .item)</h2>
+          <div
+            id="event-counter"
+            style="font-size: 2rem; font-weight: 700; color: var(--accent2)"
+          >
+            0
+          </div>
+          <div
+            style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem"
+          >
+            Delegated via onD()
+          </div>
+        </section>
+      </div>
+    </main>
 
     <script type="module">
       import dom, { make } from "../dist/index.js";
 
-      const $app = dom("#app");
-      const card = make('<div class="card" id="myid"><h3></h3><p></p></div>');
-      card.find("h3").text("Hello");
-      card.find("p").text("Fluent MarwaJS DOM, less code.");
-      $app.add(card);
+      /* ---- Helpers ---- */
+      const log = (msg, type = "ok") => {
+        const el = document.getElementById("log");
+        const t = new Date().toLocaleTimeString("en", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        const entry = document.createElement("div");
+        entry.className = "entry";
+        entry.innerHTML = `<span class="ts">${t}</span><span class="msg ${type}">${msg}</span>`;
+        el.prepend(entry);
+      };
 
-      card.on("click", () => card.class("?active"));
-      dom(document).onD("click", ".btn", (_e, btn) =>
-        dom(myid).class("?active")
-      );
+      const sel = (sel) => dom(sel);
+      const m = (html) => make(html);
+
+      const highlight = (sel) => {
+        dom(sel).each((el) => el.classList.add("highlight"));
+        setTimeout(
+          () => dom(sel).each((el) => el.classList.remove("highlight")),
+          400,
+        );
+      };
+
+      /* ---- Selection ---- */
+      document.getElementById("sel-id").onclick = () => {
+        const $el = sel("#playground .section");
+        log(`dom("#playground .section") → ${$el.length} element(s)`);
+        highlight("#playground .section");
+      };
+
+      document.getElementById("sel-class").onclick = () => {
+        const $el = sel(".item");
+        log(`dom(".item") → ${$el.length} element(s)`);
+        highlight(".item");
+      };
+
+      document.getElementById("sel-tag").onclick = () => {
+        const $el = sel("li");
+        log(`dom("li") → ${$el.length} element(s) (may be 0 — try .item)`);
+      };
+
+      document.getElementById("sel-all-items").onclick = () => {
+        const $el = dom(".item");
+        log(
+          `All .item → length=${$el.length}, first=${$el.first?.textContent?.trim()}`,
+        );
+        highlight(".item");
+      };
+
+      document.getElementById("sel-first").onclick = () => {
+        const $el = dom(".item");
+        const first = $el.first;
+        log(`First .item → "${first?.textContent?.trim()}"`);
+        highlight(".item");
+      };
+
+      document.getElementById("make-div").onclick = () => {
+        const el = m(
+          '<div class="el" style="background:var(--green)">made div</div>',
+        );
+        sel("#playground .section").pre(el);
+        log(`make("<div>") → appended`);
+      };
+
+      document.getElementById("make-p").onclick = () => {
+        const el = m(
+          '<p class="el" style="background:var(--red);padding:4px 8px;border-radius:4px">Hello from make!</p>',
+        );
+        sel("#playground .section").pre(el);
+        log(`make("p","Hello") → prepended`);
+      };
+
+      document.getElementById("make-ul").onclick = () => {
+        const ul = m(
+          '<ul style="margin:4px 0;padding-left:16px"><li>Item A</li><li>Item B</li></ul>',
+        );
+        sel("#playground .section").pre(ul);
+        log(`make("ul+lis") → prepended`);
+      };
+
+      document.getElementById("clear-play").onclick = () => {
+        const section = sel("#playground .section");
+        // remove all but the first nested div
+        section.find(".el").each((el) => el.remove());
+        sel("#playground").append(section);
+        log(`clear() → playground reset`);
+      };
+
+      /* ---- Content ---- */
+      document.getElementById("btn-text").onclick = () => {
+        sel(".item").first.textContent = "Hello World";
+        log(`text("Hello World") set on first .item`);
+      };
+
+      document.getElementById("btn-text-read").onclick = () => {
+        const t = sel(".item").first.textContent;
+        log(`text() read → "${t}"`);
+      };
+
+      document.getElementById("btn-html").onclick = () => {
+        sel(".item").first.innerHTML = "<b>Bold</b> &amp; <i>Italic</i>";
+        log(`html("<b>Bold</b>") → script stripped`);
+      };
+
+      document.getElementById("btn-html-read").onclick = () => {
+        const h = sel(".item").first.innerHTML;
+        log(`html() read → "${h}"`);
+      };
+
+      document.getElementById("btn-val-set").onclick = () => {
+        const v = document.getElementById("input-val").value;
+        sel("#playground .section")
+          .find(".item")
+          .first.val(v || "typed…");
+        log(`val("${v || "typed…"}") set on first .item`);
+      };
+
+      document.getElementById("btn-val-read").onclick = () => {
+        const v = sel(".item").first.val();
+        log(`val() read → "${v}"`);
+      };
+
+      /* ---- Attr & Data ---- */
+      document.getElementById("btn-attr-set").onclick = () => {
+        sel(".item").first.attr("data-id", "42");
+        log(`attr("data-id","42") set`);
+      };
+
+      document.getElementById("btn-attr-read").onclick = () => {
+        const v = sel(".item").first.attr("data-id");
+        log(`attr("data-id") → "${v}"`);
+      };
+
+      document.getElementById("btn-attr-rm").onclick = () => {
+        sel(".item").first.attr("data-id", null);
+        log(`attr("data-id", null) removed`);
+      };
+
+      document.getElementById("btn-data-set").onclick = () => {
+        sel(".item").first.data("user", "alice");
+        log(`data("user","alice") set`);
+      };
+
+      document.getElementById("btn-data-read").onclick = () => {
+        const v = sel(".item").first.data("user");
+        log(`data("user") → "${v}"`);
+      };
+
+      document.getElementById("btn-data-rm").onclick = () => {
+        sel(".item").first.data("user", null);
+        log(`data("user", null) removed`);
+      };
+
+      document.getElementById("btn-attr-multiple").onclick = () => {
+        sel(".item").first.attr({ title: "Tooltip!", rel: "nofollow" });
+        log(`attr({title,rel}) → set`);
+      };
+
+      /* ---- Class ---- */
+      document.getElementById("btn-add").onclick = () => {
+        sel(".item").first.class("active");
+        log(`class("active") → added`);
+        highlight(".item");
+      };
+
+      document.getElementById("btn-remove").onclick = () => {
+        sel(".item").first.class("!active");
+        log(`class("!active") → removed`);
+        highlight(".item");
+      };
+
+      document.getElementById("btn-toggle").onclick = () => {
+        sel(".item").first.class("?active");
+        log(`class("?active") → toggled`);
+        highlight(".item");
+      };
+
+      document.getElementById("btn-empty").onclick = () => {
+        sel(".item").first.class("");
+        log(`class("") → ignored (no-op)`);
+      };
+
+      document.getElementById("btn-red").onclick = () => {
+        sel(".item").first.class("red");
+        log(`class("red") → added`);
+        highlight(".item");
+      };
+
+      document.getElementById("btn-blue").onclick = () => {
+        sel(".item").first.class("blue");
+        log(`class("blue") → added`);
+        highlight(".item");
+      };
+
+      /* ---- Styles ---- */
+      document.getElementById("btn-css-color").onclick = () => {
+        sel(".item").first.css("color", "var(--red)");
+        log(`css("color","red")`);
+      };
+
+      document.getElementById("btn-css-bg").onclick = () => {
+        sel(".item").first.css("background", "var(--accent)");
+        log(`css("background","#6c5ce7")`);
+      };
+
+      document.getElementById("btn-css-multiple").onclick = () => {
+        sel(".item").first.css({
+          fontSize: "18px",
+          borderRadius: "12px",
+          padding: "8px",
+        });
+        log(`css({fontSize:18,borderRadius:12,padding:8})`);
+      };
+
+      document.getElementById("btn-css-read").onclick = () => {
+        const v = sel(".item").first.css("fontSize");
+        log(`css("fontSize") → "${v}"`);
+      };
+
+      document.getElementById("btn-show").onclick = () => {
+        sel(".item").first.show();
+        log(`show()`);
+      };
+
+      document.getElementById("btn-hide").onclick = () => {
+        sel(".item").first.hide();
+        log(`hide()`);
+        setTimeout(() => {
+          sel(".item").first.show();
+        }, 800);
+      };
+
+      document.getElementById("btn-flip").onclick = () => {
+        sel(".item").first.flip();
+        log(`flip() → toggled hidden`);
+      };
+
+      document.getElementById("btn-css-rm").onclick = () => {
+        sel(".item").first.css("color", null);
+        log(`css("color",null) → removed`);
+      };
+
+      /* ---- Tree ---- */
+      document.getElementById("btn-add-el").onclick = () => {
+        const el = m(
+          '<div class="el" style="background:var(--green)">added</div>',
+        );
+        sel("#playground .section").add(el);
+        log(`add(make el)`);
+      };
+
+      document.getElementById("btn-pre-el").onclick = () => {
+        const el = m(
+          '<div class="el" style="background:var(--yellow);color:#000">prepended</div>',
+        );
+        sel("#playground .section").pre(el);
+        log(`pre(make el)`);
+      };
+
+      document.getElementById("btn-before").onclick = () => {
+        const el = m(
+          '<span class="el" style="background:var(--red);font-size:0.7rem">before</span>',
+        );
+        sel(".item").first.before(el);
+        log(`before(make span)`);
+      };
+
+      document.getElementById("btn-after").onclick = () => {
+        const el = m(
+          '<span class="el" style="background:var(--green);font-size:0.7rem">after</span>',
+        );
+        sel(".item").first.after(el);
+        log(`after(make span)`);
+      };
+
+      document.getElementById("btn-wrap").onclick = () => {
+        sel(".item").first.wrap("mark");
+        log(`wrap("mark")`);
+      };
+
+      document.getElementById("btn-unwrap").onclick = () => {
+        sel(".item").first.unwrap();
+        log(`unwrap()`);
+      };
+
+      document.getElementById("btn-rm-selected").onclick = () => {
+        const selected = sel(".item.highlight");
+        if (selected.length > 0) {
+          selected.rm();
+          log(`rm() selected → removed ${selected.length} element(s)`);
+        } else {
+          sel(".item").first.class("highlight");
+          log(
+            `No highlighted items — highlighted first .item. Click again to rm.`,
+          );
+        }
+      };
+
+      document.getElementById("btn-clone").onclick = () => {
+        const clones = sel(".item").first.clone();
+        sel("#playground .section").add(clones);
+        log(`clone() → appended clone of first .item`);
+      };
+
+      /* ---- Geometry ---- */
+      document.getElementById("btn-box").onclick = () => {
+        const box = sel("#playground .section").box();
+        if (box)
+          log(
+            `box() → {x:${box.x.toFixed(0)},y:${box.y.toFixed(0)},w:${box.width.toFixed(0)},h:${box.height.toFixed(0)}}`,
+          );
+        else log(`box() → null`, "warn");
+      };
+
+      document.getElementById("btn-pos-read").onclick = () => {
+        const pos = sel("#box").pos();
+        log(`pos() → {x:${pos.x},y:${pos.y}}`);
+      };
+
+      document.getElementById("btn-pos-write").onclick = () => {
+        sel("#box").pos(10, 10);
+        log(`pos(10,10) → set left/top`);
+      };
+
+      document.getElementById("btn-pos-move").onclick = () => {
+        const pos = sel("#box").pos();
+        sel("#box").pos((pos.x || 0) + 20, (pos.y || 0) + 10);
+        log(`pos(x+20, y+10) → moved`);
+      };
+
+      /* ---- Events ---- */
+      let clickCount = 0;
+
+      sel(".item").first.on("click", () => {
+        clickCount++;
+        log(`direct on("click") fired — count: ${clickCount}`);
+      });
+
+      document.getElementById("btn-once").onclick = () => {
+        let n = 0;
+        sel(".item").first.once("click", () => {
+          n++;
+          log(`once click fired (will fire only once) — n=${n}`);
+        });
+        log(`once("click") attached — next click only`);
+      };
+
+      document.getElementById("btn-off").onclick = () => {
+        sel(".item").first.off("click");
+        log(`off("click") → removed all click listeners`);
+      };
+
+      document.getElementById("btn-fire").onclick = () => {
+        for (let i = 0; i < 5; i++) {
+          sel(".item").first.first.dispatchEvent(
+            new MouseEvent("click", { bubbles: true }),
+          );
+        }
+        log(`dispatched 5 click events`);
+      };
+
+      /* Delegated — onD */
+      sel(document).onD("click", ".item", () => {
+        const cnt = document.getElementById("event-counter");
+        cnt.textContent = String(parseInt(cnt.textContent || "0") + 1);
+        log(`onD click on .item → counter=${cnt.textContent}`);
+      });
+
+      /* ---- Scroll ---- */
+      document.getElementById("btn-top-read").onclick = () => {
+        const t = sel(window).top();
+        log(`top() → ${t}`);
+      };
+
+      document.getElementById("btn-top-set").onclick = () => {
+        sel(window).top(0);
+        log(`top(0) → scrolled to top`);
+      };
+
+      document.getElementById("btn-top-mid").onclick = () => {
+        sel(window).top(120);
+        log(`top(120)`);
+      };
+
+      document.getElementById("btn-left-read").onclick = () => {
+        const l = sel(window).left();
+        log(`left() → ${l}`);
+      };
+
+      document.getElementById("btn-left-set").onclick = () => {
+        sel(window).left(30);
+        log(`left(30)`);
+      };
+
+      /* ---- Query ---- */
+      document.getElementById("btn-find").onclick = () => {
+        const found = sel("#playground .section").find(".nested");
+        log(
+          `find(".nested") → ${found.length} element(s)`,
+          found.length > 0 ? "ok" : "warn",
+        );
+        highlight(".nested");
+      };
+
+      document.getElementById("btn-up").onclick = () => {
+        const found = sel(".nested").up(".section");
+        log(
+          `up(".section") → ${found.length} element(s)`,
+          found.length > 0 ? "ok" : "warn",
+        );
+        highlight(".section");
+      };
+
+      document.getElementById("btn-near").onclick = () => {
+        const found = sel(".item").first.near(".sibling");
+        log(
+          `near(".sibling") → ${found.length} sibling(s)`,
+          found.length > 0 ? "ok" : "warn",
+        );
+        highlight(".sibling");
+      };
+
+      /* ---- Collection ---- */
+      document.getElementById("btn-each-log").onclick = () => {
+        let i = 0;
+        sel(".item").each((el) => {
+          i++;
+          log(`each[${i}]: "${el.textContent?.trim()}"`);
+        });
+      };
+
+      document.getElementById("btn-map-log").onclick = () => {
+        const classes = sel(".item").map((el) => el.className);
+        classes.forEach((c) => log(`map class: "${c}"`));
+      };
+
+      document.getElementById("btn-pipe").onclick = () => {
+        sel(".item").pipe((d) =>
+          d.css({
+            background: "var(--surface2)",
+            border: "1px dashed var(--accent2)",
+          }),
+        );
+        log(`pipe(→ style all .item)`);
+      };
+
+      document.getElementById("btn-clone-log").onclick = () => {
+        const clones = sel(".item").first.clone();
+        log(`clone() → ${clones.length} clone(s) of first .item`);
+        sel("#playground .section").pre(clones);
+      };
+
+      document.getElementById("btn-iter-log").onclick = () => {
+        let i = 0;
+        for (const el of sel(".item")) {
+          i++;
+          log(`iterator[${i}]: "${el.textContent?.trim()}"`);
+        }
+      };
+
+      document.getElementById("btn-root-log").onclick = () => {
+        const $divs = dom.root("div");
+        log(`root("div") → ${$divs.length} div(s) in document`);
+      };
+
+      /* ---- fx ---- */
+      let fxEnabled = false;
+
+      async function ensureFx() {
+        if (!fxEnabled) {
+          const { enableFx, ease } = await import("../dist/fx.js");
+          await enableFx();
+          fxEnabled = true;
+          log(`fx enabled!`, "ok");
+        }
+      }
+
+      const box = sel("#box");
+
+      document.getElementById("fx-fade").onclick = async () => {
+        await ensureFx();
+        box.fade(600);
+        log(`fade(600)`);
+      };
+
+      document.getElementById("fx-move").onclick = async () => {
+        await ensureFx();
+        box.move(80, 0, 600);
+        log(`move(80,0,600)`);
+      };
+
+      document.getElementById("fx-scale").onclick = async () => {
+        await ensureFx();
+        box.scale(1.5, 400);
+        log(`scale(1.5,400)`);
+      };
+
+      document.getElementById("fx-rotate").onclick = async () => {
+        await ensureFx();
+        box.rotate(180, 400);
+        log(`rotate(180,400)`);
+      };
+
+      document.getElementById("fx-stop").onclick = async () => {
+        await ensureFx();
+        box.stop();
+        log(`stop()`);
+      };
+
+      document.getElementById("fx-chain").onclick = async () => {
+        await ensureFx();
+        const { ease } = await import("../dist/fx.js");
+        box.move(0, 0, 300).scale(1, 300).rotate(0, 300);
+        log(`chain: move + scale + rotate`);
+      };
+
+      document.getElementById("fx-custom").onclick = async () => {
+        await ensureFx();
+        box.to({ x: 30, scale: 1.2, opacity: 0.8 }, 500);
+        log(`to({x:30,scale:1.2,opacity:0.8},500)`);
+      };
+
+      document.getElementById("box").onclick = async () => {
+        await ensureFx();
+        box.move(0, 0, 300).scale(1, 300).rotate(0, 300);
+      };
+
+      /* ---- store ---- */
+      const { store } = await import("../dist/store.js");
+      const s = store("local", "demo:");
+
+      const renderStore = () => {
+        const out = document.getElementById("store-output");
+        const all = s.all();
+        if (!all || Object.keys(all).length === 0) {
+          out.innerHTML =
+            '<span style="color:var(--muted);font-size:0.8rem">No keys stored</span>';
+          return;
+        }
+        out.innerHTML = Object.entries(all)
+          .map(
+            ([k, v]) =>
+              `<div class="kv"><span class="key">${k}</span><span class="val">${JSON.stringify(v)}</span></div>`,
+          )
+          .join("");
+      };
+
+      renderStore();
+
+      document.getElementById("store-set").onclick = () => {
+        const k = document.getElementById("store-key").value.trim();
+        const v = document.getElementById("store-val").value;
+        if (!k) {
+          log(`store: key required`, "warn");
+          return;
+        }
+        try {
+          s.set(k, v || null);
+          renderStore();
+          log(`set("${k}","${v}")`, "ok");
+        } catch (e) {
+          log(`set error: ${e}`, "err");
+        }
+      };
+
+      document.getElementById("store-get").onclick = () => {
+        const k = document.getElementById("store-key").value.trim();
+        if (!k) {
+          log(`store: key required`, "warn");
+          return;
+        }
+        const v = s.get(k);
+        log(`get("${k}") → ${JSON.stringify(v)}`, v !== null ? "ok" : "warn");
+      };
+
+      document.getElementById("store-has").onclick = () => {
+        const k = document.getElementById("store-key").value.trim();
+        if (!k) {
+          log(`store: key required`, "warn");
+          return;
+        }
+        const v = s.has(k);
+        log(`has("${k}") → ${v}`, v ? "ok" : "warn");
+      };
+
+      document.getElementById("store-rm").onclick = () => {
+        const k = document.getElementById("store-key").value.trim();
+        if (!k) {
+          log(`store: key required`, "warn");
+          return;
+        }
+        s.rm(k);
+        renderStore();
+        log(`rm("${k}")`, "ok");
+      };
+
+      document.getElementById("store-all").onclick = () => {
+        const all = s.all();
+        log(`all() → ${JSON.stringify(all)}`, "ok");
+        renderStore();
+      };
+
+      document.getElementById("store-clear").onclick = () => {
+        s.clear();
+        renderStore();
+        log(`clear()`, "ok");
+      };
+
+      /* ---- net ---- */
+      const { net } = await import("../dist/net.js");
+
+      const netOut = document.getElementById("net-output");
+
+      const req = (method, path, body) => {
+        const api = net("https://jsonplaceholder.typicode.com", {
+          timeout: 8000,
+        });
+        netOut.innerHTML = `<span class="warn">${method} ${path}…</span>`;
+        const p = body
+          ? api[method.toLowerCase()](path, body)
+          : api[method.toLowerCase()](path);
+        return p
+          .json()
+          .then(({ data, res }) => {
+            const cls = res.ok ? "status-2xx" : "status-4xx";
+            netOut.innerHTML = `<span class="${cls}">${res.status} ${res.statusText}</span>\n${JSON.stringify(data, null, 2).slice(0, 400)}`;
+            log(`${method} ${path} → ${res.status}`, res.ok ? "ok" : "warn");
+          })
+          .catch((err) => {
+            netOut.innerHTML = `<span class="status-err">Error: ${err.message}</span>`;
+            log(`${method} ${path} → ${err.message}`, "err");
+          });
+      };
+
+      document.getElementById("net-get").onclick = () =>
+        req("GET", "/posts?_limit=3");
+      document.getElementById("net-get-1").onclick = () =>
+        req("GET", "/posts/1");
+      document.getElementById("net-post").onclick = () =>
+        req("POST", "/posts", {
+          title: "Hello",
+          body: "marwajs-dom demo",
+          userId: 1,
+        });
+
+      document.getElementById("net-invalid").onclick = () => {
+        try {
+          const bad = net("javascript:alert(1)");
+          log(`Should have thrown!`, "err");
+        } catch (e) {
+          netOut.innerHTML = `<span class="status-err">Caught: ${e.message}</span>`;
+          log(`SSRF guard: ${e.message}`, "ok");
+        }
+      };
+
+      /* ---- Init log ---- */
+      log(`marwajs-dom demo ready. Click buttons to explore.`, "ok");
     </script>
   </body>
 </html>
