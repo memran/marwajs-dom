@@ -1,6 +1,6 @@
 {
   "name": "marwajs-dom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fluent, single-word, chainable DOM utilities + fx/store/net add-ons.",
   "keywords": [
     "dom",
