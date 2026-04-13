@@ -346,7 +346,8 @@ export class Dom {
   }
 
   wrap(tagName: string): this {
-    if (!tagName || tagName.includes("<")) return this;
+    if (!tagName || tagName.includes("<") || tagName.includes(" "))
+      throw new Error("wrap() requires a single tag name (e.g. 'div' or 'span'), not a selector");
     return this.each((el) => {
       const w = Dom.make(tagName).first as Element;
       if (!w || !el.parentNode) return;

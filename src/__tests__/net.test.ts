@@ -148,15 +148,15 @@ describe("net()", () => {
   });
 
   describe("safe extra props", () => {
-    it("passes safe extra props (cache, credentials)", async () => {
+    it("passes safe extra props (cache)", async () => {
       await (net("https://api.example.com") as any).post(
         "/data",
         { x: 1 },
-        { cache: "no-store", credentials: "include" },
+        { cache: "no-store" },
       );
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ cache: "no-store", credentials: "include" }),
+        expect.objectContaining({ cache: "no-store" }),
       );
     });
 

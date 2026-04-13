@@ -52,12 +52,10 @@ function isSafeUrl(url: string): boolean {
 const SAFE_EXTRA_KEYS: (keyof RequestInit)[] = [
   "body",
   "cache",
-  "credentials",
   "keepalive",
   "referrer",
   "referrerPolicy",
   "signal",
-  "window",
 ];
 
 function safeExtra(extra: RequestInit | undefined): Partial<RequestInit> {
@@ -110,7 +108,7 @@ export interface Client {
   patch(path: string, body?: unknown, init?: RequestInit): Promise<Reply>;
   del(
     path: string,
-    queryOrBody?: Query | unknown,
+    query?: Query,
     init?: RequestInit,
   ): Promise<Reply>;
   head(path: string, query?: Query, init?: RequestInit): Promise<Reply>;
@@ -202,25 +200,8 @@ export function net(base?: string, init: NetInit = {}): Client {
     post: (path, body, extra) => run(compose(path, "POST", body, extra)),
     put: (path, body, extra) => run(compose(path, "PUT", body, extra)),
     patch: (path, body, extra) => run(compose(path, "PATCH", body, extra)),
-    del: (path, queryOrBody, extra) => {
-      if (
-        queryOrBody &&
-        typeof queryOrBody === "object" &&
-        !(queryOrBody instanceof Blob) &&
-        !(queryOrBody instanceof FormData)
-      ) {
-        // prefer body for DELETE; but allow query via 'init'
-        return run(compose(path, "DELETE", queryOrBody, extra));
-      }
-      return run(
-        compose(
-          path,
-          "DELETE",
-          undefined,
-          extra,
-          queryOrBody as Query | undefined,
-        ),
-      );
+    del: (path, query, extra) => {
+      return run(compose(path, "DELETE", undefined, extra, query));
     },
 
     use(fn: Interceptor) {
@@ -245,6 +226,8 @@ export function net(base?: string, init: NetInit = {}): Client {
       return this;
     },
     base(url: string) {
+      if (url && !isSafeUrl(url))
+        throw new Error("net: base must be a safe http(s) URL");
       _base = url;
       return this;
     },

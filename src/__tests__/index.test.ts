@@ -395,9 +395,9 @@ describe("tree operations", () => {
     expect(section?.tagName).toBe("SECTION");
   });
 
-  it("wrap() rejects HTML strings", () => {
-    dom("#middle").wrap("<div><span></span></div>");
-    expect(document.getElementById("middle")?.parentElement?.id).toBe("parent");
+  it("wrap() throws on complex selectors or HTML", () => {
+    expect(() => dom("#middle").wrap("<div><span></span></div>")).toThrow();
+    expect(() => dom("#middle").wrap("div .card")).toThrow(); // space = selector
   });
 
   it("empty() clears innerHTML", () => {

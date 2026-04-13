@@ -39,13 +39,63 @@ function now() {
   return performance.now();
 }
 
+function parseTransform(cs: CSSStyleDeclaration): {
+  x: number; y: number; scale: number; rotate: number;
+} {
+  const raw = cs.transform || "";
+  let x = 0, y = 0, scale = 1, rotate = 0;
+
+  // matrix(a, b, c, d, tx, ty)
+  const matrixMatch = raw.match(/matrix\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/);
+  if (matrixMatch) {
+    const a = parseFloat(matrixMatch[1]);
+    const b = parseFloat(matrixMatch[2]);
+    const c = parseFloat(matrixMatch[3]);
+    const d = parseFloat(matrixMatch[4]);
+    const tx = parseFloat(matrixMatch[5]);
+    const ty = parseFloat(matrixMatch[6]);
+    x = tx; y = ty;
+    scale = Math.sqrt(a * a + b * b);
+    rotate = Math.atan2(b, a) * (180 / Math.PI);
+    return { x, y, scale, rotate };
+  }
+
+  // translate(tx [ty])
+  const tMatch = raw.match(/translate\(\s*([^,]+)(?:\s*,\s*([^)]+))?\s*\)/);
+  if (tMatch) {
+    x = parseFloat(tMatch[1]) || 0;
+    y = parseFloat(tMatch[2]) || 0;
+  }
+
+  // scale(sx [sy])
+  const sMatch = raw.match(/scale\(\s*([^,]+)(?:\s*,\s*([^)]+))?\s*\)/);
+  if (sMatch) {
+    scale = parseFloat(sMatch[1]) || 1;
+    const sy = parseFloat(sMatch[2]);
+    if (!isNaN(sy)) scale = sy; // use sy if present
+  }
+
+  // rotate(angle)
+  const rMatch = raw.match(/rotate\(\s*([^)]+)\s*\)/);
+  if (rMatch) {
+    const deg = parseFloat(rMatch[1]) || 0;
+    if (rMatch[1].includes("deg")) rotate = deg;
+    else rotate = deg * (180 / Math.PI);
+  }
+
+  return { x, y, scale, rotate };
+}
+
 function readStyle(el: HTMLElement, k: string): number {
   const cs = getComputedStyle(el);
   if (k === "opacity") return parseFloat(cs.opacity || "1") || 0;
-  if (k === "x") return 0; // we manage transforms ourselves
-  if (k === "y") return 0;
-  if (k === "scale") return 1;
-  if (k === "rotate") return 0;
+  if (k === "x" || k === "y" || k === "scale" || k === "rotate") {
+    const { x, y, scale, rotate } = parseTransform(cs);
+    if (k === "x") return x;
+    if (k === "y") return y;
+    if (k === "scale") return scale;
+    if (k === "rotate") return rotate;
+  }
   const raw =
     cs.getPropertyValue(
       k.startsWith("--")
