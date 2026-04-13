@@ -926,14 +926,14 @@
       /* ---- Events ---- */
       let clickCount = 0;
 
-      sel(".item").first.on("click", () => {
+      sel(".item").on("click", () => {
         clickCount++;
         log(`direct on("click") fired — count: ${clickCount}`);
       });
 
       document.getElementById("btn-once").onclick = () => {
         let n = 0;
-        sel(".item").first.once("click", () => {
+        sel(".item").once("click", () => {
           n++;
           log(`once click fired (will fire only once) — n=${n}`);
         });
@@ -941,13 +941,13 @@
       };
 
       document.getElementById("btn-off").onclick = () => {
-        sel(".item").first.off("click");
+        sel(".item").off("click");
         log(`off("click") → removed all click listeners`);
       };
 
       document.getElementById("btn-fire").onclick = () => {
         for (let i = 0; i < 5; i++) {
-          sel(".item").first.first.dispatchEvent(
+          sel(".item").first?.dispatchEvent(
             new MouseEvent("click", { bubbles: true }),
           );
         }
