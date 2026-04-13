@@ -663,22 +663,22 @@
 
       /* ---- Content ---- */
       document.getElementById("btn-text").onclick = () => {
-        sel(".item").first.textContent = "Hello World";
+        sel(".item").at(0).textContent = "Hello World";
         log(`text("Hello World") set on first .item`);
       };
 
       document.getElementById("btn-text-read").onclick = () => {
-        const t = sel(".item").first.textContent;
+        const t = sel(".item").at(0).textContent;
         log(`text() read → "${t}"`);
       };
 
       document.getElementById("btn-html").onclick = () => {
-        sel(".item").first.innerHTML = "<b>Bold</b> &amp; <i>Italic</i>";
+        sel(".item").at(0).innerHTML = "<b>Bold</b> &amp; <i>Italic</i>";
         log(`html("<b>Bold</b>") → script stripped`);
       };
 
       document.getElementById("btn-html-read").onclick = () => {
-        const h = sel(".item").first.innerHTML;
+        const h = sel(".item").at(0).innerHTML;
         log(`html() read → "${h}"`);
       };
 
@@ -686,100 +686,101 @@
         const v = document.getElementById("input-val").value;
         sel("#playground .section")
           .find(".item")
-          .first.val(v || "typed…");
+          .at(0)
+          .val(v || "typed…");
         log(`val("${v || "typed…"}") set on first .item`);
       };
 
       document.getElementById("btn-val-read").onclick = () => {
-        const v = sel(".item").first.val();
+        const v = sel(".item").at(0).val();
         log(`val() read → "${v}"`);
       };
 
       /* ---- Attr & Data ---- */
       document.getElementById("btn-attr-set").onclick = () => {
-        sel(".item").first.attr("data-id", "42");
+        sel(".item").at(0).attr("data-id", "42");
         log(`attr("data-id","42") set`);
       };
 
       document.getElementById("btn-attr-read").onclick = () => {
-        const v = sel(".item").first.attr("data-id");
+        const v = sel(".item").at(0).attr("data-id");
         log(`attr("data-id") → "${v}"`);
       };
 
       document.getElementById("btn-attr-rm").onclick = () => {
-        sel(".item").first.attr("data-id", null);
+        sel(".item").at(0).attr("data-id", null);
         log(`attr("data-id", null) removed`);
       };
 
       document.getElementById("btn-data-set").onclick = () => {
-        sel(".item").first.data("user", "alice");
+        sel(".item").at(0).data("user", "alice");
         log(`data("user","alice") set`);
       };
 
       document.getElementById("btn-data-read").onclick = () => {
-        const v = sel(".item").first.data("user");
+        const v = sel(".item").at(0).data("user");
         log(`data("user") → "${v}"`);
       };
 
       document.getElementById("btn-data-rm").onclick = () => {
-        sel(".item").first.data("user", null);
+        sel(".item").at(0).data("user", null);
         log(`data("user", null) removed`);
       };
 
       document.getElementById("btn-attr-multiple").onclick = () => {
-        sel(".item").first.attr({ title: "Tooltip!", rel: "nofollow" });
+        sel(".item").at(0).attr({ title: "Tooltip!", rel: "nofollow" });
         log(`attr({title,rel}) → set`);
       };
 
       /* ---- Class ---- */
       document.getElementById("btn-add").onclick = () => {
-        sel(".item").first.class("active");
+        sel(".item").at(0).class("active");
         log(`class("active") → added`);
         highlight(".item");
       };
 
       document.getElementById("btn-remove").onclick = () => {
-        sel(".item").first.class("!active");
+        sel(".item").at(0).class("!active");
         log(`class("!active") → removed`);
         highlight(".item");
       };
 
       document.getElementById("btn-toggle").onclick = () => {
-        sel(".item").first.class("?active");
+        sel(".item").at(0).class("?active");
         log(`class("?active") → toggled`);
         highlight(".item");
       };
 
       document.getElementById("btn-empty").onclick = () => {
-        sel(".item").first.class("");
+        sel(".item").at(0).class("");
         log(`class("") → ignored (no-op)`);
       };
 
       document.getElementById("btn-red").onclick = () => {
-        sel(".item").first.class("red");
+        sel(".item").at(0).class("red");
         log(`class("red") → added`);
         highlight(".item");
       };
 
       document.getElementById("btn-blue").onclick = () => {
-        sel(".item").first.class("blue");
+        sel(".item").at(0).class("blue");
         log(`class("blue") → added`);
         highlight(".item");
       };
 
       /* ---- Styles ---- */
       document.getElementById("btn-css-color").onclick = () => {
-        sel(".item").first.css("color", "var(--red)");
+        sel(".item").at(0).css("color", "var(--red)");
         log(`css("color","red")`);
       };
 
       document.getElementById("btn-css-bg").onclick = () => {
-        sel(".item").first.css("background", "var(--accent)");
+        sel(".item").at(0).css("background", "var(--accent)");
         log(`css("background","#6c5ce7")`);
       };
 
       document.getElementById("btn-css-multiple").onclick = () => {
-        sel(".item").first.css({
+        sel(".item").at(0).css({
           fontSize: "18px",
           borderRadius: "12px",
           padding: "8px",
@@ -788,30 +789,30 @@
       };
 
       document.getElementById("btn-css-read").onclick = () => {
-        const v = sel(".item").first.css("fontSize");
+        const v = sel(".item").at(0).css("fontSize");
         log(`css("fontSize") → "${v}"`);
       };
 
       document.getElementById("btn-show").onclick = () => {
-        sel(".item").first.show();
+        sel(".item").at(0).show();
         log(`show()`);
       };
 
       document.getElementById("btn-hide").onclick = () => {
-        sel(".item").first.hide();
+        sel(".item").at(0).hide();
         log(`hide()`);
         setTimeout(() => {
-          sel(".item").first.show();
+          sel(".item").at(0).show();
         }, 800);
       };
 
       document.getElementById("btn-flip").onclick = () => {
-        sel(".item").first.flip();
+        sel(".item").at(0).flip();
         log(`flip() → toggled hidden`);
       };
 
       document.getElementById("btn-css-rm").onclick = () => {
-        sel(".item").first.css("color", null);
+        sel(".item").at(0).css("color", null);
         log(`css("color",null) → removed`);
       };
 
@@ -836,7 +837,7 @@
         const el = m(
           '<span class="el" style="background:var(--red);font-size:0.7rem">before</span>',
         );
-        sel(".item").first.before(el);
+        sel(".item").at(0).before(el);
         log(`before(make span)`);
       };
 
@@ -844,17 +845,17 @@
         const el = m(
           '<span class="el" style="background:var(--green);font-size:0.7rem">after</span>',
         );
-        sel(".item").first.after(el);
+        sel(".item").at(0).after(el);
         log(`after(make span)`);
       };
 
       document.getElementById("btn-wrap").onclick = () => {
-        sel(".item").first.wrap("mark");
+        sel(".item").at(0).wrap("mark");
         log(`wrap("mark")`);
       };
 
       document.getElementById("btn-unwrap").onclick = () => {
-        sel(".item").first.unwrap();
+        sel(".item").at(0).unwrap();
         log(`unwrap()`);
       };
 
@@ -864,7 +865,7 @@
           selected.rm();
           log(`rm() selected → removed ${selected.length} element(s)`);
         } else {
-          sel(".item").first.class("highlight");
+          sel(".item").at(0).class("highlight");
           log(
             `No highlighted items — highlighted first .item. Click again to rm.`,
           );
@@ -872,13 +873,13 @@
       };
 
       document.getElementById("btn-clone").onclick = () => {
-        const clones = sel(".item").first.clone();
+        const clones = sel(".item").at(0).clone();
         sel("#playground .section").add(clones);
         log(`clone() → appended clone of first .item`);
       };
 
       document.getElementById("btn-replace").onclick = () => {
-        const target = sel(".item").first;
+        const target = sel(".item").at(0);
         if (target) {
           target.replace(
             '<span class="el" style="background:var(--green)">replaced</span>',
@@ -888,7 +889,7 @@
       };
 
       document.getElementById("btn-swap").onclick = () => {
-        const target = sel(".item").first;
+        const target = sel(".item").at(0);
         if (target) {
           target.swap(
             '<span class="el" style="background:var(--red)">swapped</span>',
@@ -947,9 +948,9 @@
 
       document.getElementById("btn-fire").onclick = () => {
         for (let i = 0; i < 5; i++) {
-          sel(".item").first?.dispatchEvent(
-            new MouseEvent("click", { bubbles: true }),
-          );
+          sel(".item")
+            .at(0)
+            ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
         }
         log(`dispatched 5 click events`);
       };
@@ -1007,7 +1008,7 @@
       };
 
       document.getElementById("btn-near").onclick = () => {
-        const found = sel(".item").first.near(".sibling");
+        const found = sel(".item").at(0).near(".sibling");
         log(
           `near(".sibling") → ${found.length} sibling(s)`,
           found.length > 0 ? "ok" : "warn",
@@ -1040,7 +1041,7 @@
       };
 
       document.getElementById("btn-clone-log").onclick = () => {
-        const clones = sel(".item").first.clone();
+        const clones = sel(".item").at(0).clone();
         log(`clone() → ${clones.length} clone(s) of first .item`);
         sel("#playground .section").pre(clones);
       };
