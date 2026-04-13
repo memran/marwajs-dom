@@ -657,7 +657,7 @@
         const section = sel("#playground .section");
         // remove all but the first nested div
         section.find(".el").each((el) => el.remove());
-        sel("#playground").append(section);
+        sel("#playground").add(section);
         log(`clear() → playground reset`);
       };
 
