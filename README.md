@@ -124,6 +124,8 @@ dom("ul").empty(); // clear innerHTML
 dom(".card").rm(); // remove each element from DOM
 dom("p").clone(); // deep clone each element
 dom("p").clone(false); // shallow clone
+dom("#old").replace("<span id='new'>New</span>"); // replace elements
+dom("#a").swap("<span id='b'>B</span>"); // alias for replace()
 ```
 
 ### Geometry
@@ -203,6 +205,8 @@ ease.linear;
 ease.in; // ease-in
 ease.out; // ease-out
 ease.inout; // ease-in-out
+ease.elastic; // exaggerated ease-out with overshoot
+ease.bounce; // symmetric bounce with multiple reversals
 ```
 
 ---
