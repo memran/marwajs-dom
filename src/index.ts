@@ -21,9 +21,14 @@ type EventMap = HTMLElementEventMap & DocumentEventMap & WindowEventMap;
 function toArray<T>(x: ArrayLike<T> | T | null | undefined): T[] {
   if (!x) return [];
   if (Array.isArray(x)) return x;
-  if (typeof (x as any).length === "number")
-    return Array.prototype.slice.call(x);
+  if (typeof x === "object" && "length" in x && typeof x.length === "number")
+    return Array.from(x);
   return [x as T];
+}
+
+/** Assert a value is non-null */
+function nn<T>(v: T | null | undefined): v is T {
+  return v != null;
 }
 
 function isElement(x: any): x is Element {
@@ -48,12 +53,13 @@ function setStyle(el: Element, k: string, v: StyleValue) {
   const style = (el as HTMLElement).style;
   if (!style) return;
   if (v == null) {
-    // remove
     style.removeProperty(k.includes("-") ? k : kebab(k));
     return;
   }
-  (style as any)[camel(k)] =
-    typeof v === "number" && !/^(opacity|zIndex)$/i.test(k) ? `${v}px` : v;
+  const prop = camel(k);
+  const num = typeof v === "number" && !/^(opacity|zIndex)$/i.test(k);
+  const val = num ? `${v}px` : String(v);
+  (style as unknown as Record<string, string>)[prop] = val;
 }
 
 /** Tiny internal event registry for `off()` without keeping user closures around */
@@ -347,7 +353,9 @@ export class Dom {
 
   wrap(tagName: string): this {
     if (!tagName || tagName.includes("<") || tagName.includes(" "))
-      throw new Error("wrap() requires a single tag name (e.g. 'div' or 'span'), not a selector");
+      throw new Error(
+        "wrap() requires a single tag name (e.g. 'div' or 'span'), not a selector",
+      );
     return this.each((el) => {
       const w = Dom.make(tagName).first as Element;
       if (!w || !el.parentNode) return;
@@ -426,9 +434,9 @@ export class Dom {
     opts?: OnOptions,
   ): this {
     this.list.forEach((t) => {
-      if (!t || (t as any).addEventListener == null) return;
-      (t as any).addEventListener(type as string, handler as any, opts);
-      regGetKey(t as any, type as string).add(handler as any);
+      if (!t || !("addEventListener" in t)) return;
+      t.addEventListener(type, handler as EventListener, opts);
+      regGetKey(t, type as string).add(handler as EventListener);
     });
     return this;
   }
@@ -438,29 +446,26 @@ export class Dom {
     handler?: (ev: EventMap[K]) => void,
   ): this {
     this.list.forEach((t) => {
-      const target = t as any;
-      if (!target || target.removeEventListener == null) return;
+      if (!t || !("removeEventListener" in t)) return;
 
       if (!type) {
         // remove all types
-        const m = REG.get(target);
+        const m = REG.get(t);
         if (!m) return;
         m.forEach((set, typ) =>
-          set.forEach((h) => target.removeEventListener(typ, h as any)),
+          set.forEach((h) => t.removeEventListener(typ, h as EventListener)),
         );
-        REG.delete(target);
+        REG.delete(t);
         return;
       }
 
       if (handler) {
-        target.removeEventListener(type as string, handler as any);
-        const set = regGetKey(target, type as string);
-        set.delete(handler as any);
+        t.removeEventListener(type, handler as EventListener);
+        const set = regGetKey(t, type as string);
+        set.delete(handler as EventListener);
       } else {
-        const set = regGetKey(target, type as string);
-        set.forEach((h) =>
-          target.removeEventListener(type as string, h as any),
-        );
+        const set = regGetKey(t, type as string);
+        set.forEach((h) => t.removeEventListener(type, h as EventListener));
         set.clear();
       }
     });
@@ -473,10 +478,10 @@ export class Dom {
     opts?: OnOptions,
   ): this {
     const wrap = (ev: Event) => {
-      handler(ev as any);
-      this.off(type as any, wrap as any);
+      handler(ev as EventMap[K]);
+      this.off(type, wrap);
     };
-    return this.on(type, wrap as any, opts);
+    return this.on(type, wrap, opts);
   }
 
   /** Delegated listener: onD("click", "button", h) */
@@ -491,12 +496,11 @@ export class Dom {
       (ev: Event) => {
         const t = ev.target as Element | null;
         if (!t) return;
-        const host = this.first as Element | Document | Window | undefined;
-        const root =
-          host && "contains" in (host as any) ? (host as Element) : document;
-        const match = (t.closest as any)?.(sel);
-        if (match && (root as Element).contains(match))
-          handler(ev as any, match);
+        const host = this.first;
+        const root = nn(host) && "contains" in host ? host : document;
+        const match = t.closest?.(sel) as Element | null;
+        if (match && root.contains(match as Node))
+          handler(ev as EventMap[K], match);
       },
       opts,
     );

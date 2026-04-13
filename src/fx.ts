@@ -13,15 +13,10 @@ const ease = {
   in: (t: number) => t * t,
   out: (t: number) => 1 - (1 - t) * (1 - t),
   inout: (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
-  /** Exaggerated ease-out with overshoot */
   elastic: (t: number) => {
     if (t === 0 || t === 1) return t;
     const c4 = (2 * Math.PI) / 3;
-    return t === 0
-      ? 0
-      : t === 1
-        ? 1
-        : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
   },
   /** Symmetric bounce with multiple reversals */
   bounce: (t: number) => {
@@ -59,21 +54,28 @@ function now() {
 }
 
 function parseTransform(cs: CSSStyleDeclaration): {
-  x: number; y: number; scale: number; rotate: number;
+  x: number;
+  y: number;
+  scale: number;
+  rotate: number;
 } {
   const raw = cs.transform || "";
-  let x = 0, y = 0, scale = 1, rotate = 0;
+  let x = 0,
+    y = 0,
+    scale = 1,
+    rotate = 0;
 
   // matrix(a, b, c, d, tx, ty)
-  const matrixMatch = raw.match(/matrix\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/);
+  const matrixMatch = raw.match(
+    /matrix\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\s*\)/,
+  );
   if (matrixMatch) {
     const a = parseFloat(matrixMatch[1]);
     const b = parseFloat(matrixMatch[2]);
-    const c = parseFloat(matrixMatch[3]);
-    const d = parseFloat(matrixMatch[4]);
     const tx = parseFloat(matrixMatch[5]);
     const ty = parseFloat(matrixMatch[6]);
-    x = tx; y = ty;
+    x = tx;
+    y = ty;
     scale = Math.sqrt(a * a + b * b);
     rotate = Math.atan2(b, a) * (180 / Math.PI);
     return { x, y, scale, rotate };
