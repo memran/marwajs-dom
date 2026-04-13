@@ -416,6 +416,21 @@ describe("tree operations", () => {
     expect(clones.first).not.toBe(document.querySelector("#middle"));
     expect(clones.first?.textContent).toBe("Middle");
   });
+
+  it("replace() swaps elements in-place", () => {
+    document.body.innerHTML = `<div id="parent"><span id="old">Old</span></div><div id="new-host"></div>`;
+    dom("#old").replace('<span id="new">New</span>');
+    expect(document.querySelector("#new")?.textContent).toBe("New");
+    expect(document.querySelector("#old")).toBeNull();
+    expect(document.querySelector("#parent")?.children[0]?.id).toBe("new");
+  });
+
+  it("swap() is alias for replace()", () => {
+    document.body.innerHTML = `<div id="parent"><span id="a">A</span></div>`;
+    dom("#a").swap('<span id="b">B</span>');
+    expect(document.querySelector("#b")?.textContent).toBe("B");
+    expect(document.querySelector("#a")).toBeNull();
+  });
 });
 
 describe("event methods", () => {

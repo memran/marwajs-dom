@@ -57,4 +57,21 @@ describe("fx — ease functions", () => {
     expect(ease.inout(0.5)).toBe(0.5);
     expect(ease.inout(0.25)).toBeCloseTo(0.125);
   });
+
+  it("ease.elastic", () => {
+    expect(ease.elastic(0)).toBe(0);
+    expect(ease.elastic(1)).toBe(1);
+    // elastic overshoots past 1 mid-curve then snaps back
+    const mid = ease.elastic(0.5);
+    expect(mid).toBeGreaterThan(1);
+  });
+
+  it("ease.bounce", () => {
+    expect(ease.bounce(0)).toBe(0);
+    expect(ease.bounce(1)).toBe(1);
+    // bounce is monotonically increasing (never reverses)
+    expect(ease.bounce(0.5)).toBeLessThan(ease.bounce(0.9));
+    // ends at exactly 1
+    expect(ease.bounce(1)).toBe(1);
+  });
 });

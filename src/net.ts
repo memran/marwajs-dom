@@ -148,11 +148,13 @@ export function net(base?: string, init: NetInit = {}): Client {
     const controller = new AbortController();
     const mergedQuery = { ..._query, ...query };
     const url = join(_base, path) + qs(mergedQuery);
+    const isFormData = body instanceof FormData;
+    const isBlob = body instanceof Blob;
     const isJSON =
       body != null &&
       typeof body !== "string" &&
-      !(body instanceof FormData) &&
-      !(body instanceof Blob);
+      !isFormData &&
+      !isBlob;
     const headers = new Headers(_headers);
     if (isJSON) headers.set("Content-Type", "application/json");
     const init: RequestInit = {
@@ -163,7 +165,9 @@ export function net(base?: string, init: NetInit = {}): Client {
           ? undefined
           : isJSON
             ? JSON.stringify(body)
-            : (body as any),
+            : isBlob
+              ? body
+              : (body as any),
       signal: controller.signal,
       ...safeExtra(extra),
     };

@@ -380,6 +380,27 @@ export class Dom {
     return new Dom(out);
   }
 
+  /** Replace each element with the given node(s) */
+  replace(node: DomInput | Node): this {
+    const nodes =
+      node instanceof Dom
+        ? node.list
+        : isElement(node) || node instanceof Node
+          ? [node as any]
+          : Dom.make(node as string).list;
+    return this.each((el) => {
+      const parent = el.parentNode;
+      if (!parent) return;
+      nodes.forEach((n) => parent.insertBefore(n as any, el));
+      el.remove();
+    });
+  }
+
+  /** Swap each element with the given node(s) — alias for replace() */
+  swap(node: DomInput | Node): this {
+    return this.replace(node);
+  }
+
   // ===== Geometry =====
   box(): DOMRect | null {
     const el = this.first as Element | undefined;

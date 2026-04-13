@@ -5,10 +5,13 @@
   "keywords": [
     "dom",
     "fluent",
+    "chainable",
+    "lightweight",
     "utility",
     "typescript",
     "esm",
-    "micro"
+    "micro",
+    "vanilla"
   ],
   "license": "MIT",
   "author": "Mohammad Emran <memran.dhk@gmail.com>",
