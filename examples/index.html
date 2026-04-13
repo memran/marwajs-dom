@@ -62,7 +62,7 @@
 
       main {
         display: grid;
-        grid-template-columns: 1fr 320px;
+        grid-template-columns: 1fr 360px;
         gap: 1.5rem;
         padding: 1.5rem 2rem;
         max-width: 1400px;
@@ -73,6 +73,20 @@
         main {
           grid-template-columns: 1fr;
         }
+      }
+
+      .right-panel {
+        position: sticky;
+        top: 1.5rem;
+        height: fit-content;
+        max-height: calc(100vh - 3rem);
+        overflow-y: auto;
+      }
+
+      section.sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
 
       section {
@@ -462,7 +476,7 @@
         </section>
 
         <!-- Live playground -->
-        <section>
+        <section class="sticky-top">
           <h2>Playground &amp; Log</h2>
           <div id="playground">
             <div class="el section">
@@ -481,7 +495,7 @@
       </div>
 
       <!-- ====== RIGHT: Panels ====== -->
-      <div>
+      <div class="right-panel">
         <!-- fx -->
         <section>
           <h2>fx — Animations (enableFx required)</h2>
