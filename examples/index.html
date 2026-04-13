@@ -62,11 +62,25 @@
 
       main {
         display: grid;
-        grid-template-columns: 1fr 360px;
+        grid-template-columns: 1fr 320px;
         gap: 1.5rem;
         padding: 1.5rem 2rem;
         max-width: 1400px;
         margin: 0 auto;
+      }
+
+      .left-panel {
+        position: sticky;
+        top: 1.5rem;
+        height: fit-content;
+      }
+
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 4rem);
       }
 
       @media (max-width: 900px) {
@@ -75,29 +89,18 @@
         }
       }
 
-      .right-panel {
+      .left-panel {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+        overflow-y: auto;
+        max-height: calc(100vh - 4rem);
+      }
+
+      .right-panel {
         position: sticky;
         top: 1.5rem;
-        max-height: calc(100vh - 4rem);
-        overflow-y: auto;
-        align-content: start;
-      }
-
-      .right-panel > section {
-        flex-shrink: 0;
-      }
-
-      .right-panel .sticky-top {
-        position: sticky;
-        top: 0;
-        background: var(--surface);
-        z-index: 10;
-        padding: 1.25rem;
-        border: 1px solid var(--border);
-        border-radius: 10px;
+        height: fit-content;
       }
 
       section {
@@ -343,8 +346,29 @@
     </header>
 
     <main>
-      <!-- ====== LEFT: Playgrounds ====== -->
-      <div>
+      <!-- ====== LEFT: Playground & Log ====== -->
+      <div class="left-panel">
+        <!-- Live playground & Log -->
+        <section class="sticky-top">
+          <h2>Playground &amp; Log</h2>
+          <div id="playground">
+            <div class="el section">
+              .section
+              <div class="el item highlight" data-id="1" data-user="alice">
+                .item #1
+              </div>
+              <div class="el item" data-id="2" data-user="bob">.item #2</div>
+              <div class="el item" data-id="3" data-user="carol">.item #3</div>
+              <div class="el sibling">.sibling A</div>
+              <div class="el sibling nested">.nested</div>
+            </div>
+          </div>
+          <div id="log"></div>
+        </section>
+      </div>
+
+      <!-- ====== RIGHT: Buttons ====== -->
+      <div class="right-panel">
         <!-- DOM Selection -->
         <section>
           <h2>Selection &amp; make()</h2>
@@ -484,110 +508,6 @@
             <button id="btn-up">up(".section")</button>
             <button id="btn-near">near(".sibling")</button>
           </div>
-        </section>
-      </div>
-
-      <!-- ====== RIGHT: Panels ====== -->
-      <div class="right-panel">
-        <!-- fx -->
-        <section>
-          <h2>fx — Animations (enableFx required)</h2>
-          <div id="box" title="Click to animate">BOX</div>
-          <div class="demo-grid" style="margin-top: 0.75rem">
-            <button id="fx-fade">fade(600)</button>
-            <button id="fx-move">move(80,40)</button>
-            <button id="fx-scale">scale(1.5)</button>
-            <button id="fx-rotate">rotate(180)</button>
-            <button id="fx-stop">stop()</button>
-            <button id="fx-chain">chain all</button>
-            <button id="fx-custom">to({x:30,scale:1.2,opacity:0.8})</button>
-            <button id="fx-elastic">ease.elastic</button>
-            <button id="fx-bounce">ease.bounce</button>
-          </div>
-        </section>
-
-        <!-- store -->
-        <section>
-          <h2>store — localStorage</h2>
-          <div class="panel-row">
-            <input id="store-key" placeholder="key" style="flex: 1" />
-            <input id="store-val" placeholder="value" style="flex: 1" />
-            <button id="store-set" class="btn">set</button>
-          </div>
-          <div class="panel-row">
-            <button id="store-get" class="btn">get</button>
-            <button id="store-has" class="btn">has</button>
-            <button id="store-rm" class="btn">rm</button>
-            <button id="store-all" class="btn">all()</button>
-            <button id="store-clear" class="btn">clear</button>
-          </div>
-          <div id="store-output"></div>
-        </section>
-
-        <!-- net -->
-        <section>
-          <h2>net — HTTP Client</h2>
-          <div class="panel-row" style="flex-wrap: wrap">
-            <button id="net-get" class="btn">GET /posts</button>
-            <button id="net-get-1" class="btn">GET /posts/1</button>
-            <button id="net-post" class="btn">POST /posts</button>
-            <button id="net-invalid" class="btn">invalid base</button>
-          </div>
-          <div id="net-output">Ready. Click a request button.</div>
-        </section>
-
-        <!-- Map / Each -->
-        <section>
-          <h2>Collection — each() / map() / pipe()</h2>
-          <div class="panel-row">
-            <button id="btn-each-log">each → log texts</button>
-            <button id="btn-map-log">map → log classes</button>
-            <button id="btn-pipe">pipe(→ style all)</button>
-          </div>
-        </section>
-
-        <!-- Misc -->
-        <section>
-          <h2>Misc — clone() / iterator / root()</h2>
-          <div class="panel-row">
-            <button id="btn-clone-log">clone &amp; log</button>
-            <button id="btn-iter-log">for…of items</button>
-            <button id="btn-root-log">root("div") count</button>
-          </div>
-        </section>
-
-        <!-- Counter -->
-        <section>
-          <h2>Event counter (click .item)</h2>
-          <div
-            id="event-counter"
-            style="font-size: 2rem; font-weight: 700; color: var(--accent2)"
-          >
-            0
-          </div>
-          <div
-            style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem"
-          >
-            Delegated via onD()
-          </div>
-        </section>
-
-        <!-- Live playground & Log -->
-        <section class="sticky-top">
-          <h2>Playground &amp; Log</h2>
-          <div id="playground">
-            <div class="el section">
-              .section
-              <div class="el item highlight" data-id="1" data-user="alice">
-                .item #1
-              </div>
-              <div class="el item" data-id="2" data-user="bob">.item #2</div>
-              <div class="el item" data-id="3" data-user="carol">.item #3</div>
-              <div class="el sibling">.sibling A</div>
-              <div class="el sibling nested">.nested</div>
-            </div>
-          </div>
-          <div id="log"></div>
         </section>
       </div>
     </main>
